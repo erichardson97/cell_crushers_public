@@ -46,7 +46,7 @@ class CV():
   def __init__(self, data: pd.DataFrame):
     self.data = data
 
-  def RunCV(self, cv_type: str = 'LOOCV', cv_args: dict):
+  def RunCV(self, cv_type: str, cv_args: dict):
     if cv_type == 'LOOCV':
       return self.loocv(**cv_args)
     elif cv_type == 'RegularCV':
