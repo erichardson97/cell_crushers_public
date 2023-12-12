@@ -124,7 +124,7 @@ class CV():
     y_2 = self.data[self.data['dataset']=='2021_dataset'][target].values
     X_2_baseline = self.data[self.data['dataset']=='2021_dataset']['Titre_IgG_PT'].values
     outer = 0
-    scores = {'Score':[], 'Outer':[], 'Inner':[], 'Train_Year':[], 'Baseline'}
+    scores = {'Score':[], 'Outer':[], 'Inner':[], 'Train_Year':[], 'Baseline':[]}
     trained_models = {}
     for train_idx, _ in KFold(n_splits = 5, shuffle=True).split(X_1, y_1):
         train_X, train_y = X_1[train_idx], y_1[train_idx]
@@ -178,7 +178,7 @@ class CV():
     baseline_X2 = self.data[self.data['dataset']=='2021_dataset']['Titre_IgG_PT']
     y_2 = self.data[self.data['dataset']=='2021_dataset'][target].values
     outer = 0
-    scores = {'Score':[], 'Train_Year':[], 'Test_Year':[], 'Baseline'}
+    scores = {'Score':[], 'Train_Year':[], 'Test_Year':[], 'Baseline':[]}
     trained_models = {}
     train_X, train_y = X_1, y_1
     test_X, test_y = X_2, y_2
