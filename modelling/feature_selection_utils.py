@@ -7,6 +7,8 @@ from typing import Union, Callable
 import numpy as np
 import os
 from sklearn.preprocessing import StandardScaler
+from scipy.cluster.hierarchy import linkage, fcluster
+from scipy.spatial.distance import squareform
 
 class StatisticsTable():
   def __init__(self, target = 'Target'):
