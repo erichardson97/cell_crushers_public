@@ -9,7 +9,7 @@ import os
 from sklearn.preprocessing import StandardScaler
 
 class StatisticsTable():
-  def __init__(target = 'Target'):
+  def __init__(self, target = 'Target'):
     self.target = target
     
   def run(self, train_data, test_data, features, outf):
