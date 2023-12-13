@@ -11,6 +11,7 @@ class Dataset():
   def __init__(self, data: pd.DataFrame, target: str = 'Target'):
     self.data = data
     self.demographic_features = ['Titre_IgG_PT', 'age', 'biological_sex', 'infancy_vac', 'dataset']
+    
   def filter(self, feature_list: list = []):
     '''
     Pass a feature list and will filter to the subset of rows which have a value
@@ -20,7 +21,8 @@ class Dataset():
       self.feature_list = list(set(feature_list).union(set(self.demographic_features))) + ['Target']
     else:
       self.feature_list = self.data.columns
-    self.data_filtered = self.data[~(self.data[self.feature_list].applymap(lambda x:x=='ND')!=False).any(1)][self.feature_list]
+    self.data_filtered = self.data.dropna(subset = self.feature_list)
+    
   def make_float(self, feature_list: list = []):
     '''
     Pass a feature list and will filter to the subset of rows which have a value
@@ -28,6 +30,7 @@ class Dataset():
     '''
     for feat in feature_list:
       self.data_filtered[feat] = self.data_filtered[feat].map(float)
+      
   def normalize(self, features_to_normalize: list):
     '''
     Pass a list of continuous features for use by StandardScaler
