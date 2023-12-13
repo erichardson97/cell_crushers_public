@@ -6,7 +6,7 @@ import pandas as pd
 from typing import Union, Callable
 import numpy as np
 import os
-import sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler
 
 class StatisticsTable():
   def __init__(target = 'Target'):
