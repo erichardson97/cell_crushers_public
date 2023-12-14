@@ -50,11 +50,11 @@ class CV():
     if cv_type == 'LOOCV':
       return self.loocv(**cv_args)
     elif cv_type == 'RegularCV':
-      return self.regular_ol_cv(**cvargs)
+      return self.regular_ol_cv(**cv_args)
     elif cv_type == 'CrossDataset_Nested':
-      return self.cross_dataset_CV_Nested(**cvargs)
+      return self.cross_dataset_CV_Nested(**cv_args)
     elif cv_type == 'CrossDataset':
-      return self.cross_dataset_CV(**cvargs)
+      return self.cross_dataset_CV(**cv_args)
     
 
   def loocv(self, features: list, target: str, model_class):
