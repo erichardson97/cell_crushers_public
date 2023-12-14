@@ -1,7 +1,7 @@
 import pandas as pd
 from typing import Union, Callable, Protocol
 import numpy as np
-from scipy.stats import spearmanr
+from scipy.stats import spearmanr, linregress
 from sklearn.model_selection import train_test_split, KFold, ParameterGrid
 
 class ScikitClass(Protocol):
@@ -30,6 +30,12 @@ def corr_coeff(y_pred: list, y_true: list) -> float:
 
 def return_property(model, string):
   return getattr(model, string)
+
+def calc_residuals_for_prediction(baseline, y):
+  slope, intercept, r, p, se = linregress(baseline, y)
+  residuals = [y_val - (p*slope + intercept) for p, y_val in zip(baseline, y)]
+  return slope, intercept, np.array(residuals)
+
 
 
 def residuals_model(base_class: ScikitClass):
