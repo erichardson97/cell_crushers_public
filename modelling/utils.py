@@ -150,7 +150,7 @@ class CV():
     return scores, trained_models
 
 
-  def regular_ol_cv(self, features: list, target: str, n_splits: int, plot_dir: str, score_function: Callable, model_classes: dict = {}, model_params: dict = {}, return_coef: str = 'coef_', normalize = True,
+  def regular_ol_cv(self, features: list, target: str, n_splits: int, plot_dir: str, score_function: Callable, model_classes: dict = {}, model_params: dict = {}, return_coef: bool | dict = False, normalize = True,
                      plot: bool = True, transformation: bool | Callable = False, transformation_args: dict = {}):
     '''
     Regular CV with no stratification by year.
@@ -196,9 +196,9 @@ class CV():
     scores = pd.DataFrame(scores)
     if return_coef:
       if not transformation:
-        coefficient_df = pd.concat([pd.DataFrame(dict((p, return_property(trained_models[x][p], return_coef)) for p in trained_models[x])).T.assign(Fold=x) for x in trained_models])
+        coefficient_df = pd.concat([pd.DataFrame(dict((p, return_property(trained_models[x][p], return_coef[p])) for p in trained_models[x] if p in return_coef)).T.assign(Fold=x) for x in trained_models])
       else:
-        coefficient_df = pd.concat([pd.DataFrame(dict((p, dict((feature_order[x][m], y) for m,y in enumerate(return_property(trained_models[x][p], return_coef)))) for p in trained_models[x])).T.assign(Fold=x) for x in trained_models])
+        coefficient_df = pd.concat([pd.DataFrame(dict((p, dict((feature_order[x][m], y) for m,y in enumerate(return_property(trained_models[x][p], return_coef[p])))) for p in trained_models[x] if p in return_coef)).T.assign(Fold=x) for x in trained_models])
     else:
       coefficient_df = None
     return scores, trained_models, coefficient_df
