@@ -143,12 +143,15 @@ def calc_ratio(val1, val2):
 def consistency_between_years(dataset: pd.DataFrame, features: list, correlation_function: Callable = spearmanr, target: str = 'Target') -> pd.DataFrame:
   year2020 = dataset[dataset['dataset']=='2020_dataset'][features + [target]].values
   year2021 = dataset[dataset['dataset']=='2021_dataset'][features + [target]].values
+  total = dataset[features + [target]].values
   spearman_values = {}
   for index, feature in enumerate(features):
     values_2020 = spearmanr(year2020[:, index], year2020[:, -1], nan_policy = 'omit')
     values_2021 = spearmanr(year2021[:, index], year2021[:, -1], nan_policy = 'omit')
+    values_total = spearmanr(total[:, index], total[:, -1], nan_policy = 'omit')
     spearman_values[feature] = {'2020_rho': values_2020[0], '2020_p': values_2020[1],
-                                '2021_rho': values_2021[0], '2021_p': values_2021[1]}
+                                '2021_rho': values_2021[0], '2021_p': values_2021[1],
+                                'total_rho': values_total[0], 'total_p': values_total[1]}
   spearman_values = pd.DataFrame(spearman_values).T
   spearman_values['Ratio'] = spearman_values.apply(lambda x:calc_ratio(x['2020_rho'], x['2021_rho']), axis = 1)
   std = spearman_values[spearman_values["Ratio"]!=1e-6]['Ratio'].std()
