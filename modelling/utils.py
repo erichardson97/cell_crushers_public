@@ -72,8 +72,8 @@ def reduce_dimensions(X: np.array, y: np.array, features: np.array, features_to_
     else:
       reduction = reducer
       X_trans = reduction.transform(X[:, feature_idxs])
-    X_new = np.hstack([X[:, features_to_keep], X_trans])
-    new_feature_order = list(features[features_to_keep]) + [f'NewFeat{p}' for p in range(n_components)]
+    X_new = np.hstack([X_trans, X[:, features_to_keep]])
+    new_feature_order = [f'NewFeat{p}' for p in range(n_components)] + list(features[features_to_keep])
     return X_new, reduction, new_feature_order
 
 def residuals_model(base_class: ScikitClass):
