@@ -1,10 +1,14 @@
 import pandas as pd
-from typing import Union, Callable
+from typing import Union, Callable, Protocol
 import numpy as np
 from scipy.stats import spearmanr
 from sklearn.model_selection import train_test_split, KFold, ParameterGrid
 
-
+class ScikitClass(Protocol):
+    def fit(self, X, y, sample_weight=None): ...
+    def predict(self, X): ...
+    def score(self, X, y, sample_weight=None): ...
+    def set_params(self, **params): ...
 
 def corr_coeff_report(y_pred: list, y_true: list) -> float:
   '''
@@ -26,6 +30,30 @@ def corr_coeff(y_pred: list, y_true: list) -> float:
 
 def return_property(model, string):
   return getattr(model, string)
+
+
+def residuals_model(base_class: ScikitClass):
+  class ResidualModel(base_class):
+
+    def __init__(self, **kwargs):
+      super().__init__(**kwargs)
+    
+    def fit(self, X, y):
+      baseline = X[:, -1]
+      X = X[:, :-1]
+      slope, intercept, residuals = calc_residuals_for_prediction(baseline, y)
+      self.slope = slope
+      self.intercept = intercept
+      super().fit(X, residuals)
+
+    def predict(self, X):
+      baseline = X[:, -1]
+      X = X[:, :-1]
+      residuals = super().predict(X)
+      return self.slope * baseline + self.intercept + residuals
+  return ResidualModel
+
+
 
 class HyperparamSearch():
   def __init__(self):
