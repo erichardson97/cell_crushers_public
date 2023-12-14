@@ -37,6 +37,44 @@ def calc_residuals_for_prediction(baseline, y):
   return slope, intercept, np.array(residuals)
 
 
+def make_plots(plot_dir, model_name, fold_idx, X, y, train_idx, test_idx, test_preds, test_y, baseline_y, score, baseline_score):
+  fname = os.path.join(plot_dir, f'{model_name}_{fold_idx}Test.png')
+  df = pd.DataFrame([test_preds, test_y, baseline_y]).T
+  fig, axs = plt.subplots(1,2, figsize=(10,5))
+  ax = axs[0]
+  sns.scatterplot(data = df, x = 0, y = 1, alpha = 0.2, ax = ax)
+  ax.set_xlabel('Prediction')
+  ax.set_ylabel('Target')
+  xlim = ax.get_xlim()
+  ylim = ax.get_ylim()
+  ax.plot([xlim[0], xlim[1]], [ylim[0], ylim[1]], linestyle='--')
+  ax = axs[1]
+  sns.scatterplot(data = df, x = 2, y = 1, alpha = 0.2, ax = ax)
+  ax.set_xlabel('Baseline')
+  ax.set_ylabel('Target')
+  xlim = ax.get_xlim()
+  ylim = ax.get_ylim()
+  ax.plot([xlim[0], xlim[1]], [ylim[0], ylim[1]], linestyle='--')
+  axs[0].set_title(r'$\rho$'+f' {score:.2f}', fontweight = 'bold')
+  axs[1].set_title(r'$\rho$'+f' {baseline_score:.2f}', fontweight = 'bold')
+  plt.savefig(fname, dpi = 300)
+  plt.close()
+
+def reduce_dimensions(X: np.array, y: np.array, features: np.array, features_to_keep: np.array, n_components: int, reducer, trained: bool = False, supervised: bool = True):
+    feature_idxs = np.where(np.isin(features, features_to_change))[0]
+    features_to_keep = np.where(~np.isin(features, features_to_change))[0]
+    if not trained:
+      reduction = reducer(n_components = n_components)
+      if supervised:
+        X_trans = reduction.fit(X[:, feature_idxs], y).transform(X[:, feature_idxs])
+      else:
+        X_trans = reduction.fit(X[:, feature_idxs]).transform(X[:, feature_idxs])
+    else:
+      reduction = reducer
+      X_trans = reduction.transform(X[:, feature_idxs])
+    X_new = np.hstack([X[:, features_to_keep], X_trans])
+    new_feature_order = list(features[features_to_keep]) + [f'NewFeat{p}' for p in range(n_components)]
+    return X_new, reduction, new_feature_order
 
 def residuals_model(base_class: ScikitClass):
   class ResidualModel(base_class):
@@ -58,8 +96,6 @@ def residuals_model(base_class: ScikitClass):
       residuals = super().predict(X)
       return self.slope * baseline + self.intercept + residuals
   return ResidualModel
-
-
 
 class HyperparamSearch():
   def __init__(self):
@@ -114,7 +150,8 @@ class CV():
     return scores, trained_models
 
 
-  def regular_ol_cv(self, features: list, target: str, n_splits: int, score_function: Callable, model_class, model_params: dict = {}, return_coef: str = 'coef_'):
+  def regular_ol_cv(self, features: list, target: str, n_splits: int, plot_dir: str, score_function: Callable, model_classes: dict = {}, model_params: dict = {}, return_coef: str = 'coef_', normalize = True,
+                     plot: bool = True, transformation: bool | Callable = False, transformation_args: dict = {}):
     '''
     Regular CV with no stratification by year.
     '''
@@ -122,25 +159,46 @@ class CV():
     baseline = self.data['Titre_IgG_PT'].values
     y = self.data[target].values
     fold = 0
-    scores = {'Fold':[], 'Score':[], 'MSE':[], 'Baseline':[]}
-    trained_models = {}
+    scores = {'Fold':[], 'Score':[], 'MSE':[], 'Baseline':[], 'Model':[]}
+    trained_models = defaultdict(dict)
+    feature_order = defaultdict(dict)
     for train_idx, test_idx in KFold(n_splits = n_splits, shuffle = True).split(X, y):
       train_X, train_y = X[train_idx], y[train_idx]
       test_X, test_y = X[test_idx], y[test_idx]
-      model = model_class(**model_params)
-      model.fit(train_X, train_y)
-      val = model.predict(test_X)
-      score = score_function(test_y, val)
-      scores['Fold'].append(fold)
-      scores['Score'].append(score)
-      scores['MSE'].append(mean_squared_error(test_y, val))
-      scores['Baseline'].append(score_function(test_y, baseline[test_idx]))
-      trained_models[fold] = model
+      if normalize:
+        train_X = StandardScaler().fit_transform(train_X)
+        train_y = StandardScaler().fit_transform(train_y.reshape(-1,1)).ravel()
+        test_X = StandardScaler().fit_transform(test_X)
+        test_y = StandardScaler().fit_transform(test_y.reshape(-1,1)).ravel()
+      if transformation:
+        assert train_X.shape[1] == test_X.shape[1]
+        train_X, transformer, new_feature_order = transformation(train_X, train_y, **transformation_args)
+        test_X, _, _ =transformation(test_X, test_y, reducer = transformer, n_components = transformation_args['n_components'],
+                               features = transformation_args['features'], features_to_keep = transformation_args['features_to_keep'], trained = True)
+        feature_order[fold] = new_feature_order
+      for model_name in model_classes:
+        model_class = model_classes[model_name]
+        model = model_class(**model_params[model_name])
+        model.fit(train_X, train_y)
+        assert test_X.shape[1] == train_X.shape[1]
+        val = model.predict(test_X)
+        score = score_function(test_y, val)
+        baseline_score = score_function(test_y, baseline[test_idx])
+        if plot:
+          make_plots(plot_dir, model, fold, X, y, train_idx, test_idx, val, test_y, baseline[test_idx], score=score, baseline_score=baseline_score)
+        scores['Fold'].append(fold)
+        scores['Score'].append(score)
+        scores['MSE'].append(mean_squared_error(test_y, val))
+        scores['Baseline'].append(baseline_score)
+        scores['Model'].append(model_name)
+        trained_models[fold][model_name] = model
       fold += 1
     scores = pd.DataFrame(scores)
     if return_coef:
-      coefficient_df = pd.DataFrame(dict((p, return_property(trained_models[p], return_coef)) for p in trained_models)).T
-      coefficient_df.columns = features
+      if not transformation:
+        coefficient_df = pd.concat([pd.DataFrame(dict((p, return_property(trained_models[x][p], return_coef)) for p in trained_models[x])).T.assign(Fold=x) for x in trained_models])
+      else:
+        coefficient_df = pd.concat([pd.DataFrame(dict((p, dict((feature_order[x][m], y) for m,y in enumerate(return_property(trained_models[x][p], return_coef)))) for p in trained_models[x])).T.assign(Fold=x) for x in trained_models])
     else:
       coefficient_df = None
     return scores, trained_models, coefficient_df
