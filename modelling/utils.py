@@ -3,6 +3,7 @@ from typing import Union, Callable, Protocol
 import numpy as np
 from scipy.stats import spearmanr, linregress
 from sklearn.model_selection import train_test_split, KFold, ParameterGrid
+from collections import defaultdict
 
 class ScikitClass(Protocol):
     def fit(self, X, y, sample_weight=None): ...
