@@ -191,7 +191,7 @@ class CV():
         score = score_function(test_y, val)
         baseline_score = score_function(test_y, baseline[test_idx])
         if plot:
-          make_plots(plot_dir, model, fold, X, y, train_idx, test_idx, val, test_y, baseline[test_idx], score=score, baseline_score=baseline_score)
+          make_plots(plot_dir, model_name, fold, X, y, train_idx, test_idx, val, test_y, baseline[test_idx], score=score, baseline_score=baseline_score)
         scores['Fold'].append(fold)
         scores['Score'].append(score)
         scores['MSE'].append(mean_squared_error(test_y, val))
@@ -202,9 +202,9 @@ class CV():
     scores = pd.DataFrame(scores)
     if return_coef:
       if not transformation:
-        coefficient_df = pd.concat([pd.DataFrame(dict((p, return_property(trained_models[x][p], return_coef[p])) for p in trained_models[x] if p in return_coef)).T.assign(Fold=x) for x in trained_models])
+        coefficient_df = [pd.DataFrame(dict((p, return_property(trained_models[x][p], return_coef[p])) for p in trained_models[x] if p in return_coef)).T.assign(Fold=x) for x in trained_models]
       else:
-        coefficient_df = pd.concat([pd.DataFrame(dict((p, dict((feature_order[x][m], y) for m,y in enumerate(return_property(trained_models[x][p], return_coef[p])))) for p in trained_models[x] if p in return_coef)).T.assign(Fold=x) for x in trained_models])
+        coefficient_df = [pd.DataFrame(dict((p, dict((feature_order[x][m], y) for m,y in enumerate(return_property(trained_models[x][p], return_coef[p])))) for p in trained_models[x] if p in return_coef)).T.assign(Fold=x) for x in trained_models]
     else:
       coefficient_df = None
     return scores, trained_models, coefficient_df
