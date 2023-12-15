@@ -61,4 +61,20 @@ class Dataset():
   def transform_predictors(self, features: list, function: Callable, function_args: dict = {}):
     self.data = pd.DataFrame(function(**function_args).fit_transform(self.data[features]))
     self.record_transform(features_to_normalize, 'Custom transform')
+
+
+def read_sheet_url(url: str) -> pd.DataFrame:
+  return pd.read_csv(url.replace('/edit#gid=', '/export?format=csv&gid='))
+
+def read_rtf(file: str) -> set:
+  with open(file.replace('rtf','tsv'), 'w') as k:
+    k.write('\n'.join(rtf_to_text(open(file,'r').read()).split('UniProtKB'))[1:])
+  genes = set(pd.read_csv(file.replace('rtf','tsv'), sep = '\t')['Gene'].unique())
+  return genes
+
+def read_rtf2(file: str) -> set:
+  gene1 = rtf_to_text(open(file, 'r').read()).split('GO:')[0].split('\t')[-2]
+  names = [p.split('\t')[-2] for p in rtf_to_text(open(file, 'r').read()).split('GO:')[1:]]
+  names = [p.replace('UniProt','').replace('GO_Central','').replace('ComplexPortal','').replace('BHF-UCL', '').replace('Ensembl', '') for p in names]
+  return set(names).union(set([gene1]))
     
