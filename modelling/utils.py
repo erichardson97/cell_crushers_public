@@ -191,9 +191,9 @@ class CV():
             test_y = StandardScaler().fit_transform(test_y.reshape(-1,1)).ravel()
         if transformation:
             assert train_X.shape[1] == test_X.shape[1]
-            train_X, transformer, new_feature_order = transformation(train_X, train_y, **transformation_args)
-            test_X, _, _ =transformation(test_X, test_y, reducer = transformer, n_components = transformation_args['n_components'],
-                               features = transformation_args['features'], features_to_keep = transformation_args['features_to_change'], trained = True)
+            train_X, transformer, new_feature_order =  transformation(train_X, train_y, **transformation_args)
+            test_X, _, _ = transformation(test_X, test_y, reducer = transformer, n_components = transformation_args['n_components'],
+                               features = transformation_args['features'], features_to_change = transformation_args['features_to_change'], trained = True)
             feature_order[fold] = new_feature_order
         for model_name in model_classes:
             model_class = model_classes[model_name]
