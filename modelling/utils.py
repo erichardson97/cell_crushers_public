@@ -9,6 +9,7 @@ from sklearn.metrics import mean_squared_error
 import seaborn as sns
 from matplotlib import pyplot as plt
 import os
+import pickle
 
 class ScikitClass(Protocol):
     def fit(self, X, y, sample_weight=None): ...
@@ -157,56 +158,67 @@ class CV():
 
 
   def regular_ol_cv(self, features: list, target: str, n_splits: int, plot_dir: str, score_function: Callable, model_classes: dict = {}, model_params: dict = {}, return_coef: bool | dict = False, normalize = True,
-                     plot: bool = True, transformation: bool | Callable = False, transformation_args: dict = {}):
+                     plot: bool = True, transformation: bool | Callable = False, transformation_args: dict = {}, precomputed_split: bool = False):
     '''
     Regular CV with no stratification by year.
     '''
     X = self.data[features].values
     baseline = self.data['Titre_IgG_PT'].values
     y = self.data[target].values
-    fold = 0
+
     scores = {'Fold':[], 'Score':[], 'MSE':[], 'Baseline':[], 'Model':[]}
     trained_models = defaultdict(dict)
     feature_order = defaultdict(dict)
-    for train_idx, test_idx in KFold(n_splits = n_splits, shuffle = True).split(X, y):
-      train_X, train_y = X[train_idx], y[train_idx]
-      test_X, test_y = X[test_idx], y[test_idx]
-      if normalize:
-        train_X = StandardScaler().fit_transform(train_X)
-        train_y = StandardScaler().fit_transform(train_y.reshape(-1,1)).ravel()
-        test_X = StandardScaler().fit_transform(test_X)
-        test_y = StandardScaler().fit_transform(test_y.reshape(-1,1)).ravel()
-      if transformation:
-        assert train_X.shape[1] == test_X.shape[1]
-        train_X, transformer, new_feature_order = transformation(train_X, train_y, **transformation_args)
-        test_X, _, _ =transformation(test_X, test_y, reducer = transformer, n_components = transformation_args['n_components'],
+    if precomputed_split == False:
+        fold = 0
+        split_indexes = {}
+        for train_idx, test_idx in KFold(n_splits = n_splits, shuffle = True).split(X, y):
+            split_indexes[fold] = {'Train':train_idx, 'Test':test_idx}
+            fold += 1  
+        with open(os.path.join(plot_dir, 'CV_Idx.p'), 'wb') as k:
+            pickle.dump(split_indexes, k)
+    else:
+        split_indexes = pd.read_pickle(precomputed_split)
+    for fold in split_indexes:
+        train_idx = split_indexes[fold]['Train']
+        test_idx = split_indexes[fold]['Test']
+        train_X, train_y = X[train_idx], y[train_idx]
+        test_X, test_y = X[test_idx], y[test_idx]
+        if normalize:
+            train_X = StandardScaler().fit_transform(train_X)
+            train_y = StandardScaler().fit_transform(train_y.reshape(-1,1)).ravel()
+            test_X = StandardScaler().fit_transform(test_X)
+            test_y = StandardScaler().fit_transform(test_y.reshape(-1,1)).ravel()
+        if transformation:
+            assert train_X.shape[1] == test_X.shape[1]
+            train_X, transformer, new_feature_order = transformation(train_X, train_y, **transformation_args)
+            test_X, _, _ =transformation(test_X, test_y, reducer = transformer, n_components = transformation_args['n_components'],
                                features = transformation_args['features'], features_to_keep = transformation_args['features_to_keep'], trained = True)
-        feature_order[fold] = new_feature_order
-      for model_name in model_classes:
-        model_class = model_classes[model_name]
-        model = model_class(**model_params[model_name])
-        model.fit(train_X, train_y)
-        assert test_X.shape[1] == train_X.shape[1]
-        val = model.predict(test_X)
-        score = score_function(test_y, val)
-        baseline_score = score_function(test_y, baseline[test_idx])
-        if plot:
-          make_plots(plot_dir, model_name, fold, X, y, train_idx, test_idx, val, test_y, baseline[test_idx], score=score, baseline_score=baseline_score)
-        scores['Fold'].append(fold)
-        scores['Score'].append(score)
-        scores['MSE'].append(mean_squared_error(test_y, val))
-        scores['Baseline'].append(baseline_score)
-        scores['Model'].append(model_name)
-        trained_models[fold][model_name] = model
-      fold += 1
+            feature_order[fold] = new_feature_order
+        for model_name in model_classes:
+            model_class = model_classes[model_name]
+            model = model_class(**model_params[model_name])
+            model.fit(train_X, train_y)
+            assert test_X.shape[1] == train_X.shape[1]
+            val = model.predict(test_X)
+            score = score_function(test_y, val)
+            baseline_score = score_function(test_y, baseline[test_idx])
+            if plot:
+              make_plots(plot_dir, model_name, fold, X, y, train_idx, test_idx, val, test_y, baseline[test_idx], score=score, baseline_score=baseline_score)
+            scores['Fold'].append(fold)
+            scores['Score'].append(score)
+            scores['MSE'].append(mean_squared_error(test_y, val))
+            scores['Baseline'].append(baseline_score)
+            scores['Model'].append(model_name)
+            trained_models[fold][model_name] = model
     scores = pd.DataFrame(scores)
     if return_coef:
-      if not transformation:
-        coefficient_df = [pd.DataFrame(dict((p, return_property(trained_models[x][p], return_coef[p])) for p in trained_models[x] if p in return_coef)).T.assign(Fold=x) for x in trained_models]
-      else:
-        coefficient_df = [pd.DataFrame(dict((p, dict((feature_order[x][m], y) for m,y in enumerate(return_property(trained_models[x][p], return_coef[p])))) for p in trained_models[x] if p in return_coef)).T.assign(Fold=x) for x in trained_models]
+        if not transformation:
+            coefficient_df = pd.concat([pd.DataFrame(dict((p, dict((features[m], y) for m,y in enumerate(return_property(trained_models[x][p], return_coef[p])))) for p in trained_models[x] if p in return_coef)).T.assign(Fold=x) for x in trained_models])
+        else:
+            coefficient_df = pd.concat([pd.DataFrame(dict((p, dict((feature_order[x][m], y) for m,y in enumerate(return_property(trained_models[x][p], return_coef[p])))) for p in trained_models[x] if p in return_coef)).T.assign(Fold=x) for x in trained_models])
     else:
-      coefficient_df = None
+        coefficient_df = None
     return scores, trained_models, coefficient_df
 
   
