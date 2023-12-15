@@ -7,7 +7,7 @@ from collections import defaultdict
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error
 import seaborn as sns
-from matplotlib import pyplot
+from matplotlib import pyplot as plt
 import os
 
 class ScikitClass(Protocol):
