@@ -296,7 +296,7 @@ class CV():
     if normalize:
         train_X = StandardScaler().fit_transform(train_X)
         train_y = StandardScaler().fit_transform(train_y.reshape(-1,1)).ravel()
-        test_X = StandardScaler().fit_tranform(test_X)
+        test_X = StandardScaler().fit_transform(test_X)
         test_y = StandardScaler().fit_transform(test_y.reshape(-1, 1)).ravel()
     if transformation:
         assert train_X.shape[1] == test_X.shape[1]
