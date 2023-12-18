@@ -222,7 +222,7 @@ class CV():
     return scores, trained_models, coefficient_df
 
   
-  def cross_dataset_CV_Nested(self, features: list, target: str, n_splits: int, score_function: Callable, model_class, model_params: dict = {}, return_coef = 'coef_'):
+  def cross_dataset_CV_Nested(self, features: list, target: str, n_splits: int, score_function: Callable, model_classes, model_params: dict = {}, return_coef = 'coef_'):
     '''
     Nest CV i.e. train on 80% of 2020, test on 20% of 2021, etc.
     '''
@@ -277,7 +277,7 @@ class CV():
     return scores, trained_models, coefficient_df
   
   
-  def cross_dataset_CV(self, features: list, target: str, n_splits: int, plot_dir: str, score_function: Callable, model_class, model_params: dict = {}, return_coef = 'coef_',
+  def cross_dataset_CV(self, features: list, target: str, n_splits: int, plot_dir: str, score_function: Callable, model_classes: dict, model_params: dict = {}, return_coef = 'coef_',
                       normalize: bool = True, plot: bool = True, transformation: bool | Callable = False, transformation_args: dict = {}):
     '''
     Train on 2020 and test on 2021 and vice versa.
