@@ -332,7 +332,7 @@ class CV():
         trained_models['Train2021_Test2020'] = model
         val = model.predict(test_X)
         score = score_function(val, test_y)
-        baseline_score = score_function(baseline_X2, test_y)
+        baseline_score = score_function(baseline_X1, test_y)
         scores['Score'].append(score)
         scores['Train_Year'].append(2021)
         scores['Test_Year'].append(2020)
