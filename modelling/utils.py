@@ -308,7 +308,7 @@ class CV():
         model_class = model_classes[model_name]
         model = model_class(**model_params[model_name])
         model.fit(train_X, train_y)
-        trained_models['Train2020_Test2021'] = model
+        trained_models['Train2020_Test2021'][model_name] = model
         val = model.predict(test_X)
         score = score_function(val, test_y)
         baseline_score = score_function(baseline_X2, test_y)
@@ -329,7 +329,7 @@ class CV():
         model_class = model_classes[model_name]
         model = model_class(**model_params[model_name])
         model.fit(train_X, train_y)
-        trained_models['Train2021_Test2020'] = model
+        trained_models['Train2021_Test2020'][model_name] = model
         val = model.predict(test_X)
         score = score_function(val, test_y)
         baseline_score = score_function(baseline_X1, test_y)
