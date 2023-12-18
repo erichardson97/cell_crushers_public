@@ -277,7 +277,8 @@ class CV():
     return scores, trained_models, coefficient_df
   
   
-  def cross_dataset_CV(self, features: list, target: str, n_splits: int, score_function: Callable, model_class, model_params: dict = {}, return_coef = 'coef_'):
+  def cross_dataset_CV(self, features: list, target: str, n_splits: int, plot_dir: str, score_function: Callable, model_class, model_params: dict = {}, return_coef = 'coef_',
+                      normalize: bool = True, plot: bool = True, transformation: bool | Callable = False, transformation_args: dict = {}):
     '''
     Train on 2020 and test on 2021 and vice versa.
     '''
@@ -287,33 +288,62 @@ class CV():
     X_2 = self.data[self.data['dataset']=='2021_dataset'][features].values
     baseline_X2 = self.data[self.data['dataset']=='2021_dataset']['Titre_IgG_PT']
     y_2 = self.data[self.data['dataset']=='2021_dataset'][target].values
-    outer = 0
-    scores = {'Score':[], 'Train_Year':[], 'Test_Year':[], 'Baseline':[]}
-    trained_models = {}
+    scores = {'Score':[], 'Train_Year':[], 'Test_Year':[], 'Baseline':[], 'Model':[]}
+    trained_models = defaultdict(dict)
+    feature_order = defaultdict(dict)
     train_X, train_y = X_1, y_1
     test_X, test_y = X_2, y_2
-    model = model_class(**model_params).fit(train_X, train_y)
-    trained_models['Train2020_Test2021'] = model
-    val = model.predict(test_X)
-    score = score_function(val, test_y)
-    scores['Score'].append(score)
-    scores['Train_Year'].append(2020)
-    scores['Test_Year'].append(2021)
-    scores['Baseline'].append(score_function(baseline_X2, test_y))
-    model = model_class(**model_params).fit(test_X, test_y)
-    trained_models['Train2021_Test2020'] = model
-    val = model.predict(train_X)
-    score = score_function(val, train_y)
-    scores['Score'].append(score)
-    scores['Train_Year'].append(2021)
-    scores['Test_Year'].append(2020)
-    scores['Baseline'].append(score_function(baseline_X1, train_y))
+    if normalize:
+        train_X = StandardScaler().fit_transform(train_X)
+        train_y = StandardScaler().fit_transform(train_y.reshape(-1,1)).ravel()
+        test_X = StandardScaler().fit_tranform(test_X)
+        test_y = StandardScaler().fit_transform(test_y.reshape(-1, 1)).ravel()
+    if transformation:
+        assert train_X.shape[1] == test_X.shape[1]
+        train_X, transformer, new_feature_order =  transformation(train_X, train_y, **transformation_args)
+        test_X, _, _ = transformation(test_X, test_y, reducer = transformer, n_components = transformation_args['n_components'],
+                               features = transformation_args['features'], features_to_change = transformation_args['features_to_change'], trained = True)
+        feature_order['Train2020_Test2021'] = new_feature_order
+    for model_name in model_classes:
+        model_class = model_classes[model_name]
+        model = model_class(**model_params).fit(train_X, train_y)
+        trained_models['Train2020_Test2021'] = model
+        val = model.predict(test_X)
+        score = score_function(val, test_y)
+        baseline_score = score_function(baseline_X2, test_y)
+        scores['Score'].append(score)
+        scores['Train_Year'].append(2020)
+        scores['Test_Year'].append(2021)
+        scores['Baseline'].append(baseline_score)
+        scores['Model'].append(model_name)
+    train_X, train_y = X_2, y_2
+    test_X, test_y = X_1, y_1
+    if transformation:
+        assert train_X.shape[1] == test_X.shape[1]
+        train_X, transformer, new_feature_order =  transformation(train_X, train_y, **transformation_args)
+        test_X, _, _ = transformation(test_X, test_y, reducer = transformer, n_components = transformation_args['n_components'],
+                               features = transformation_args['features'], features_to_change = transformation_args['features_to_change'], trained = True)
+        feature_order['Train2020_Test2021'] = new_feature_order
+    for model_name in model_classes:
+        model_class = model_classes[model_name]
+        model = model_class(**model_params).fit(train_X, train_y)
+        trained_models['Train2021_Test2020'] = model
+        val = model.predict(test_X)
+        score = score_function(val, test_y)
+        baseline_score = score_function(baseline_X2, test_y)
+        scores['Score'].append(score)
+        scores['Train_Year'].append(2021)
+        scores['Test_Year'].append(2020)
+        scores['Baseline'].append(baseline_score)
+        scores['Model'].append(model_name)                      
     scores = pd.DataFrame(scores)
     if return_coef:
-      coefficient_df = pd.DataFrame(dict((p, return_property(trained_models[p], return_coef)) for p in trained_models)).T
-      coefficient_df.columns = features
+        if not transformation:
+            coefficient_df = pd.concat([pd.DataFrame(dict((p, dict((features[m], y) for m,y in enumerate(return_property(trained_models[x][p], return_coef[p])))) for p in trained_models[x] if p in return_coef)).T.assign(Fold=x) for x in trained_models])
+        else:
+            coefficient_df = pd.concat([pd.DataFrame(dict((p, dict((feature_order[x][m], y) for m,y in enumerate(return_property(trained_models[x][p], return_coef[p])))) for p in trained_models[x] if p in return_coef)).T.assign(Fold=x) for x in trained_models])
     else:
-      coefficient_df = None
+        coefficient_df = None
     return scores, trained_models, coefficient_df
 
 
