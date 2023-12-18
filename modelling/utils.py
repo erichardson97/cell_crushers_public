@@ -306,7 +306,7 @@ class CV():
         feature_order['Train2020_Test2021'] = new_feature_order
     for model_name in model_classes:
         model_class = model_classes[model_name]
-        model = model_class(**model_params).fit(train_X, train_y)
+        model = model_class(**model_params[model_name]).fit(train_X, train_y)
         trained_models['Train2020_Test2021'] = model
         val = model.predict(test_X)
         score = score_function(val, test_y)
@@ -326,7 +326,7 @@ class CV():
         feature_order['Train2020_Test2021'] = new_feature_order
     for model_name in model_classes:
         model_class = model_classes[model_name]
-        model = model_class(**model_params).fit(train_X, train_y)
+        model = model_class(**model_params[model_name]).fit(train_X, train_y)
         trained_models['Train2021_Test2020'] = model
         val = model.predict(test_X)
         score = score_function(val, test_y)
