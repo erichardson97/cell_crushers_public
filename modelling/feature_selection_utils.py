@@ -44,7 +44,7 @@ class StatisticsTable():
     
   def statistical_tests(self):
     statistics = {}
-    for feature in features:
+    for feature in self.features:
       stat, p = mannwhitneyu(*self.data.groupby('Type').apply(lambda x:x[feature].values))
       statistics[feature] = {'MannWhitneyU_stat':stat,'MannWhitneyU_p':p}
       stat, p = levene(*self.data.groupby('Type').apply(lambda x:x[feature].values))
