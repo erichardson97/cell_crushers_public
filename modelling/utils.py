@@ -17,6 +17,14 @@ class ScikitClass(Protocol):
     def score(self, X, y, sample_weight=None): ...
     def set_params(self, **params): ...
 
+def plot_total(total):
+  order = total.groupby('Model').apply(lambda x:x["Score"].mean()).sort_values(ascending=False).index
+  df = total.melt(id_vars=['Model'],value_vars=['Baseline',"Score"])
+  ax = sns.barplot(data = df, x = 'Model', y = 'value', hue = 'variable', order=order)
+  for tick in ax.get_xticklabels():
+    tick.set_rotation(90)
+      
+
 def corr_coeff_report(y_pred: list, y_true: list) -> float:
   '''
   Function that returns Spearman's correlation coefficient between predictions
