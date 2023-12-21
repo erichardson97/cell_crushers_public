@@ -37,7 +37,7 @@ candidate_features = list(filtered_genes) + cytokines + demographic + cell_freqs
 output_path = '/mnt/bioadhoc/Users/erichard/CMIPB_Autogluon'
 cv_results = []
 for repeat in range(10):
-  splits = pd.read_pickle(os.path.join(data_directory, 'cv_folds', f'Repeat_{repeat}_CV_Idx.p'))
+  splits = pd.read_pickle(os.path.join(data_directory, 'cv_folds', f'Repeat{repeat}_CV_Idx.p'))
   mini_results = {'Fold':[],'Repeat':[],'TopModel':[],'Score':[], 'Baseline':[]}
   for fold in range(5):
     train = data.iloc[splits[fold]['Train']][candidate_features+['Target']]
