@@ -60,7 +60,7 @@ for repeat in range(10):
     mini_results['Baseline'].append(corr_coeff_report(test['Titre_IgG_PT'], test['Target']))
     mini_results['Score'].append(score)
   mini_results = pd.DataFrame(mini_results)
-  mini_results.to_csv(os.path.join(path, f'Repeat{repeat}/Performance.csv'))
+  mini_results.to_csv(os.path.join(path, 'Performance.csv'))
   cv_results.append(mini_results)
 cv_results = pd.concat(cv_results)
 cv_results.to_csv(os.path.join(path, 'PerformanceTotal.csv'))
