@@ -167,7 +167,8 @@ for gene_type in ['all_genes', 'filtered_genes', 'literature_genes','literature_
         os.mkdir(output_directory)
       args_for_cv['transformation'] = reduce_dimensions
       args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(feature_list),
-              'reducer':PCA}
+              'reducer':PCA, 'n_components':n_components}
+      
       repeat_cv(ds.data, feature_list, args_for_cv, output_directory)
   for n_components in [10, 15, 30, len(features[gene_type])]:
       if n_components >= len(features[gene_type]):
@@ -177,13 +178,8 @@ for gene_type in ['all_genes', 'filtered_genes', 'literature_genes','literature_
         os.mkdir(output_directory)
       args_for_cv['transformation'] = reduce_dimensions
       args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(features[gene_type]),
-              'reducer':ReGainBootleg}
+              'reducer':ReGainBootleg, 'n_components':n_components}
       repeat_cv(ds.data, feature_list, args_for_cv, output_directory)
-
-
-
-
-
 
 
 
