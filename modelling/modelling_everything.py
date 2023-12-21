@@ -79,7 +79,7 @@ def load_data(path = '/content/drive/MyDrive/CMIPB_Files/IntegratedData.tsv', ta
 data_directory = '/mnt/bioadhoc/Users/erichard/cell_crushers/data/'
 results_directory = '/mnt/bioadhoc/Users/erichard/cell_crushers/results'
 
-features = pd.read_pickle('/content/drive/MyDrive/CMIPB_Files/Features/AllFeatures.p')
+features = pd.read_pickle(os.path.join(data_directory, 'AllFeatures.p'))
 
 use_demographic = True
 use_cells = True
