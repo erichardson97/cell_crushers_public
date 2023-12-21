@@ -12,7 +12,7 @@ from utils import *
 from scipy.stats import linregress
 from scipy.stats import spearmanr, linregress
 from sklearn.model_selection import ParameterGrid
-from sklearn.linear_model import Ridge, Lasso, LinearModel
+from sklearn.linear_model import Ridge, Lasso, LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 # from sklearn.cross_decomposition import PLSRegression
 from sklearn.decomposition import PCA
