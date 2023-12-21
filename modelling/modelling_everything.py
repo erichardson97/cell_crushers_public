@@ -46,7 +46,7 @@ def residuals_model(base_class: sklearn.base.BaseEstimator):
   return ResidualModel
 
 def repeat_cv(data, candidate_features, args_for_cv, output_path, cv_type = 'RegularCV'):
-  cvobj = utils.CV(data[candidate_features+['Target', 'dataset']])
+  cvobj = CV(data[candidate_features+['Target', 'dataset']])
   total = []
   coefs_ = []
   for f in range(10):
@@ -125,7 +125,7 @@ for file in glob(os.path.join(data_directory, 'correlation_filtered', '*tsv')):
   output_directory = os.path.join(results_directory, f'Model_NoncorrelatedGenes_{threshold}')
   if os.path.exists(output_directory) is False:
     os.mkdir(output_directory)
-  args_for_cv = {'target':'Target', 'n_splits':5, 'score_function':utils.corr_coeff_report, 'features':feature_list,
+  args_for_cv = {'target':'Target', 'n_splits':5, 'score_function':corr_coeff_report, 'features':feature_list,
                'transformation':False, 'plot_dir':output_directory, 'transformation_args':{}, 'model_params': model_params,
                'model_classes':model_classes, 'return_coef':return_coef, 'plot' : False}
   repeat_cv(ds.data, feature_list, args_for_cv, output_directory)
@@ -150,7 +150,7 @@ for gene_type in ['all_genes', 'filtered_genes', 'literature_genes','literature_
   output_directory = os.path.join(results_directory, f'Model_{gene_type}')
   if os.path.exists(output_directory) is False:
     os.mkdir(output_directory)
-  args_for_cv = {'target':'Target', 'n_splits':5, 'score_function':utils.corr_coeff_report, 'features':feature_list,
+  args_for_cv = {'target':'Target', 'n_splits':5, 'score_function':corr_coeff_report, 'features':feature_list,
                'transformation':False, 'plot_dir':output_directory, 'transformation_args':{}, 'model_params': model_params,
                'model_classes':model_classes, 'return_coef':return_coef, 'plot' : False}
   repeat_cv(ds.data, feature_list, args_for_cv, output_directory)
