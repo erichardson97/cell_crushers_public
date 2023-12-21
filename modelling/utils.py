@@ -7,6 +7,8 @@ from collections import defaultdict
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error
 import seaborn as sns
+from itertools import combinations
+from statsmodels.formula import api as smf
 from matplotlib import pyplot as plt
 import os
 import pickle
@@ -23,7 +25,55 @@ def plot_total(total):
   ax = sns.barplot(data = df, x = 'Model', y = 'value', hue = 'variable', order=order)
   for tick in ax.get_xticklabels():
     tick.set_rotation(90)
+
+
+class ReGainBootleg():
+  def __init__(self, n_components= 100):
+    self.n_genes = n_components
       
+  def fit(self, X, y, fill_missing = True):
+    if len(y.shape) == 0:
+      y = y.reshape(-1, 1)
+    self.data = pd.DataFrame(np.hstack([X, y]))
+    self.data.columns = [f'Feat{p}' for p in range(X.shape[1])]+['Target']
+    if fill_missing:
+      self.fill_missing(self.data, self.data.columns[:-1])
+    self.ReGainMatrix(self.data,  n_features = self.n_genes)
+    return self
+
+  def fit_transform(self, X, y, fill_missing = True):
+    self.fit(X, y, fill_missing = fill_missing)
+    return self.transform(X)
+
+  def fill_missing(self, data, features):
+    for feat in features:
+      median_val = data[feat].median()
+      data[feat] = data[feat].fillna(median_val)
+    return data
+
+  def ReGainMatrix(self, data, n_features = 100):
+    assert data.shape[1]-1 < data.shape[0]
+    features = self.data.columns[:-1]
+    total_features = set(features)
+    pairs = combinations(features, 2)
+    total_mat = dict()
+    for pair in pairs:
+      a1 = pair[0]
+      a2 = pair[1]
+      other = total_features.difference(set([a1, a2]))
+      model = f'Target ~ {a1} + {a2} + {a1}*{a2} +' + ' + '.join(other)
+      fit = smf.ols(data = data, formula = model).fit()
+      params = fit.pvalues.loc[f'{a1}:{a2}']
+      total_mat[f'{a1}:{a2}'] = params
+    self.features = [p[0] for p in sorted(total_mat.items(),key=lambda x:x[1])[:n_features]]
+
+  def transform(self, data):
+    data = pd.DataFrame(data)
+    data.columns = [f'Feat{p}' for p in range(data.shape[1])]
+    for pair in self.features:
+      data[pair] = data.apply(lambda x:x[pair.split(':')[0]]/x[pair.split(':')[1]] if x[pair.split(':')[1]] != 0 else x[pair.split(':')[0]], axis =1 )
+    return data[self.features]
+
 
 def corr_coeff_report(y_pred: list, y_true: list) -> float:
   '''
@@ -75,7 +125,7 @@ def make_plots(plot_dir, model_name, fold_idx, X, y, train_idx, test_idx, test_p
   plt.savefig(fname, dpi = 300)
   plt.close()
 
-def reduce_dimensions(X: np.array, y: np.array, features: np.array, features_to_change: np.array, n_components: int, reducer, trained: bool = False, supervised: bool = True):
+def reduce_dimensions(X: np.array, y: np.array, features: np.array, features_to_change: np.array, n_components: int, reducer, trained: bool = False, supervised: bool = True, interpretable: bool = False):
     feature_idxs = np.where(np.isin(features, features_to_change))[0]
     features_to_keep = np.where(~np.isin(features, features_to_change))[0]
     if not trained:
@@ -87,7 +137,11 @@ def reduce_dimensions(X: np.array, y: np.array, features: np.array, features_to_
     else:
       reduction = reducer
       X_trans = reduction.transform(X[:, feature_idxs])
-    X_new = np.hstack([X_trans, X[:, features_to_keep]])
+    X_new = np.hstack([X_trans.values, X[:, features_to_keep]])
+    if interpretable:
+        old_feature_names = dict((f'Feat{k}', p) for k, p in enumerate(features))
+        new_feature_order = [old_feature_names[p.split(':')[0]]+':'+old_feature_names[p.split(':')[1]] for p in X_trans.columns]
+        new_feature_order = new_feature_order + list(features[features_to_keep])
     new_feature_order = [f'NewFeat{p}' for p in range(n_components)] + list(features[features_to_keep])
     return X_new, reduction, new_feature_order
 
