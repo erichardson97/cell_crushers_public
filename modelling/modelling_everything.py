@@ -120,6 +120,7 @@ for file in glob(os.path.join(data_directory, 'correlation_filtered', '*tsv')):
   ds.filter(['Titre_IgG_PT','Target'])
   genes = [p for p in ds.data if 'GEX' in p]
   feature_list =  genes + features['cell_freq'] + features['cytokine'] + features['demographic']
+  ds.filter(feature_list)
   assert feature_list[-1] == 'Titre_IgG_PT'
   output_directory = os.path.join(results_directory, f'Model_NoncorrelatedGenes_{threshold}')
   if os.path.exists(output_directory) is False:
@@ -145,6 +146,7 @@ for gene_type in ['all_genes', 'filtered_genes', 'literature_genes','literature_
   ds.filter(['Titre_IgG_PT','Target'])
   feature_list = features[gene_type] + features['cell_freq'] + features['cytokine'] + features['demographic']
   assert feature_list[-1] == 'Titre_IgG_PT'
+  ds.filter(feature_list)
   output_directory = os.path.join(results_directory, f'Model_{gene_type}')
   if os.path.exists(output_directory) is False:
     os.mkdir(output_directory)
