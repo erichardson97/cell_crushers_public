@@ -33,7 +33,7 @@ class ReGainBootleg():
     self.n_genes = n_components
       
   def fit(self, X, y, fill_missing = True):
-    if len(y.shape) == 0:
+    if len(y.shape) == 1:
       y = y.reshape(-1, 1)
     self.data = pd.DataFrame(np.hstack([X, y]))
     self.data.columns = [f'Feat{p}' for p in range(X.shape[1])]+['Target']
