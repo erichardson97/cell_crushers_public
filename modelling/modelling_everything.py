@@ -16,7 +16,6 @@ from sklearn.linear_model import Ridge, Lasso, LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 # from sklearn.cross_decomposition import PLSRegression
 from sklearn.decomposition import PCA
-from sklearn.mixture import GaussianMixture
 from glob import glob
 
 
@@ -45,32 +44,6 @@ def residuals_model(base_class: sklearn.base.BaseEstimator):
       residuals = super().predict(X)
       return self.slope * baseline + self.intercept + residuals
   return ResidualModel
-
-##WIP
-# def residuals_model_GMM(base_class: sklearn.base.BaseEstimator):
-#   class ResidualModel(base_class):
-
-#     def __init__(self, **kwargs):
-#       super().__init__(**kwargs)
-
-#     def fit(self, X, y):
-#       baseline = X[:, -1]
-#       X = X[:, :-1]
-#       gmm_cluster = GaussianMixture(n_components=2)
-#       gmm_cluster.fit(baseline)
-#       clusters = gmm_cluster.predict(baseline)
-#       slope, intercept, residuals = calc_residuals_for_prediction(baseline[np.where(clusters==0)[0]], y[np.where(clusters==0)[0]])
-      
-#       self.slope = slope
-#       self.intercept = intercept
-#       super().fit(X, residuals)
-
-#     def predict(self, X):
-#       baseline = X[:, -1]
-#       X = X[:, :-1]
-#       residuals = super().predict(X)
-#       return self.slope * baseline + self.intercept + residuals
-#   return ResidualModel
 
 def repeat_cv(data, candidate_features, args_for_cv, output_path, cv_type = 'RegularCV'):
   cvobj = CV(data[candidate_features+['Target', 'dataset']])
