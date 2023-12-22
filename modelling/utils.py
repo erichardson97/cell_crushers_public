@@ -418,7 +418,7 @@ class CV_GMM():
     self.data = data
 
   def RunCV(self, cv_type: str, cv_args: dict):
-    elif cv_type == 'RegularCV':
+    if cv_type == 'RegularCV':
       return self.regular_ol_cv(**cv_args)
     elif cv_type == 'CrossDataset':
       return self.cross_dataset_CV(**cv_args)
