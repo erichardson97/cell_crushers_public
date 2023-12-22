@@ -132,6 +132,8 @@ for file in glob(os.path.join(data_directory, 'correlation_filtered', '*tsv')):
   for n_components in [10, 15, 30, 50, len(genes)]:
     if n_components >= len(genes):
       continue
+    if len(genes) >= int(ds.data.shape[0]*0.8):
+      continue
     output_directory = os.path.join(results_directory, f'Model_NoncorrelatedGenes{threshold}_ReGain_{n_components}')
     if os.path.exists(output_directory) is False:
       os.mkdir(output_directory)
