@@ -433,7 +433,7 @@ class CV_GMM():
     self.data = self.data.sort_values('Cluster')
     X = self.data[features].values
     baseline = self.data['Titre_IgG_PT'].values
-    gmm_clusters = self.data['Cluster']                
+    gmm_clusters = self.data['Cluster'].values                
     y = self.data[target].values
 
     scores = {'Fold':[], 'Score':[], 'MSE':[], 'Baseline':[], 'Model':[]}
