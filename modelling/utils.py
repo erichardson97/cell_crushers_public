@@ -73,7 +73,7 @@ class ReGainBootleg():
     data.columns = [f'Feat{p}' for p in range(data.shape[1])]
     for pair in self.features:
       data[pair] = data.apply(lambda x:x[pair.split(':')[0]]/x[pair.split(':')[1]] if x[pair.split(':')[1]] != 0 else x[pair.split(':')[0]], axis =1 )
-    return data[self.features]
+    return data[self.features].values
 
 
 def corr_coeff_report(y_pred: list, y_true: list) -> float:
@@ -138,7 +138,7 @@ def reduce_dimensions(X: np.array, y: np.array, features: np.array, features_to_
     else:
       reduction = reducer
       X_trans = reduction.transform(X[:, feature_idxs])
-    X_new = np.hstack([X_trans.values, X[:, features_to_keep]])
+    X_new = np.hstack([X_trans, X[:, features_to_keep]])
     if interpretable:
         old_feature_names = dict((f'Feat{k}', p) for k, p in enumerate(features))
         new_feature_order = [old_feature_names[p.split(':')[0]]+':'+old_feature_names[p.split(':')[1]] for p in X_trans.columns]
