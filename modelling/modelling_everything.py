@@ -142,7 +142,7 @@ for params in ParameterGrid({'max_features':[None, 'sqrt', 'log2'], 'n_estimator
 #             'reducer':ReGainBootleg, 'n_components':n_components}
 #     repeat_cv(ds.data, feature_list, args_for_cv, output_directory)
     
-for gene_type in ['all_genes', 'filtered_genes', 'literature_genes','literature_genes>1', 'GO_genes']:
+for gene_type in ['GO_Genes']: #['all_genes', 'filtered_genes', 'literature_genes','literature_genes>1', 'GO_Genes']:
   target = 'Day14_IgG_Titre'
   ds = load_data(os.path.join(data_directory, "IntegratedData_Normalized.tsv"))
   ds.filter(['Titre_IgG_PT','Target'])
