@@ -177,6 +177,8 @@ for gene_type in ['all_genes', 'filtered_genes', 'literature_genes','literature_
   for n_components in [10, 15, 30, 50, len(features[gene_type])]:
       if n_components >= len(features[gene_type]):
         continue
+      if len(features[gene_type]) >= int(ds.data.shape[0]*0.8):
+        continue
       output_directory = os.path.join(results_directory, f'Model_{gene_type}_ReGain_{n_components}')
       if os.path.exists(output_directory) is False:
         os.mkdir(output_directory)
