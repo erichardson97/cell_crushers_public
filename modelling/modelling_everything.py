@@ -49,7 +49,8 @@ def repeat_cv(data, candidate_features, args_for_cv, output_path, cv_type = 'Reg
   cvobj = CV(data[candidate_features+['Target', 'dataset']])
   total = []
   coefs_ = []
-  for f in range(10):
+  n_repeats = 10 if cv_type == 'RegularCV' else 1
+  for f in range(n_repeats):
     args_for_cv['plot_dir'] = os.path.join(output_path, f'Repeat{f}')
     if cv_type == 'RegularCV':
       args_for_cv['precomputed_split'] = f'/mnt/bioadhoc/Users/erichard/cell_crushers/data/cv_folds/Repeat{f}_CV_Idx.p'
@@ -81,11 +82,8 @@ results_directory = '/mnt/bioadhoc/Users/erichard/cell_crushers/results'
 
 features = pd.read_pickle(os.path.join(data_directory, 'AllFeatures.p'))
 
-use_demographic = True
-use_cells = True
-use_olink = True
 gene_type = 'all_genes' #'filtered', 'uncorrelated'
-
+cv_type = 'CrossDataset'
 model_params = {}
 model_classes = {}
 return_coef = {}
@@ -111,81 +109,79 @@ for params in ParameterGrid({'max_features':[None, 'sqrt', 'log2'], 'n_estimator
   return_coef[f'RandomForest_{max_feat}_{n_estimators}'] = 'feature_importances_'
 
 
-
-
-# for file in glob(os.path.join(data_directory, 'correlation_filtered', '*tsv')):
-#   target = 'Day14_IgG_Titre'
-#   threshold = file.split('/')[-1][19:].split('.tsv')[0]
-#   ds = load_data(file)
-#   ds.filter(['Titre_IgG_PT','Target'])
-#   genes = [p for p in ds.data if 'GEX' in p]
-#   feature_list =  genes + features['cell_freq'] + features['cytokine'] + features['demographic']
-#   ds.filter(feature_list)
-#   assert feature_list[-1] == 'Titre_IgG_PT'
-#   output_directory = os.path.join(results_directory, f'Model_NoncorrelatedGenes_{threshold}')
-#   if os.path.exists(output_directory) is False:
-#     os.mkdir(output_directory)
-#   args_for_cv = {'target':'Target', 'n_splits':5, 'score_function':corr_coeff_report, 'features':feature_list,
-#                'transformation':False, 'plot_dir':output_directory, 'transformation_args':{}, 'model_params': model_params,
-#                'model_classes':model_classes, 'return_coef':return_coef, 'plot' : False}
-#   repeat_cv(ds.data, feature_list, args_for_cv, output_directory)
-#   for n_components in [10, 15, 30, 50, len(genes)]:
-#     if n_components >= len(genes):
-#       continue
-#     if len(genes) >= int(ds.data.shape[0]*0.8):
-#       continue
-#     output_directory = os.path.join(results_directory, f'Model_NoncorrelatedGenes{threshold}_ReGain_{n_components}')
-#     if os.path.exists(output_directory) is False:
-#       os.mkdir(output_directory)
-#     args_for_cv['transformation'] = reduce_dimensions
-#     args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(genes),
-#             'reducer':ReGainBootleg, 'n_components':n_components}
-#     repeat_cv(ds.data, feature_list, args_for_cv, output_directory)
+for file in glob(os.path.join(data_directory, 'correlation_filtered', '*tsv')):
+  target = 'Day14_IgG_Titre'
+  threshold = file.split('/')[-1][19:].split('.tsv')[0]
+  ds = load_data(file)
+  ds.filter(['Titre_IgG_PT','Target'])
+  genes = [p for p in ds.data if 'GEX' in p]
+  feature_list =  genes + features['cell_freq'] + features['cytokine'] + features['demographic']
+  ds.filter(feature_list)
+  assert feature_list[-1] == 'Titre_IgG_PT'
+  output_directory = os.path.join(results_directory, f'Model_NoncorrelatedGenes_{threshold}_{cv_type}')
+  if os.path.exists(output_directory) is False:
+    os.mkdir(output_directory)
+  args_for_cv = {'target':'Target', 'n_splits':5, 'score_function':corr_coeff_report, 'features':feature_list,
+               'transformation':False, 'plot_dir':output_directory, 'transformation_args':{}, 'model_params': model_params,
+               'model_classes':model_classes, 'return_coef':return_coef, 'plot' : False}
+  repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type)
+  for n_components in [10, 15, 30, 50, len(genes)]:
+    if n_components >= len(genes):
+      continue
+    if len(genes) >= int(ds.data.shape[0]*0.8):
+      continue
+    output_directory = os.path.join(results_directory, f'Model_NoncorrelatedGenes{threshold}_ReGain_{n_components}_{cv_type}')
+    if os.path.exists(output_directory) is False:
+      os.mkdir(output_directory)
+    args_for_cv['transformation'] = reduce_dimensions
+    args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(genes),
+            'reducer':ReGainBootleg, 'n_components':n_components}
+    repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type)
     
-for gene_type in ['GO_Genes']: #['all_genes', 'filtered_genes', 'literature_genes','literature_genes>1', 'GO_Genes']:
+for gene_type in ['all_genes', 'filtered_genes', 'literature_genes','literature_genes>1', 'GO_Genes']:
   target = 'Day14_IgG_Titre'
   ds = load_data(os.path.join(data_directory, "IntegratedData_Normalized.tsv"))
   ds.filter(['Titre_IgG_PT','Target'])
   feature_list = features[gene_type] + features['cell_freq'] + features['cytokine'] + features['demographic']
   assert feature_list[-1] == 'Titre_IgG_PT'
   ds.filter(feature_list)
-  output_directory = os.path.join(results_directory, f'Model_{gene_type}')
+  output_directory = os.path.join(results_directory, f'Model_{gene_type}_{cv_type}')
   if os.path.exists(output_directory) is False:
     os.mkdir(output_directory)
   args_for_cv = {'target':'Target', 'n_splits':5, 'score_function':corr_coeff_report, 'features':feature_list,
                'transformation':False, 'plot_dir':output_directory, 'transformation_args':{}, 'model_params': model_params,
                'model_classes':model_classes, 'return_coef':return_coef, 'plot' : False}
-  repeat_cv(ds.data, feature_list, args_for_cv, output_directory)
+  repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type)
   for n_components in [10, 15, 30, len(feature_list)]:
     if ((n_components < len(features[gene_type])) & (n_components < int(ds.data.shape[0]*0.8))):
-      output_directory = os.path.join(results_directory, f'Model_{gene_type}_PCGenes_{n_components}')
+      output_directory = os.path.join(results_directory, f'Model_{gene_type}_PCGenes_{n_components}_{cv_type}')
       if os.path.exists(output_directory) is False:
         os.mkdir(output_directory)
       args_for_cv['transformation'] = reduce_dimensions
       args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(features[gene_type]),
               'reducer':PCA, 'n_components':n_components}
-      repeat_cv(ds.data, feature_list, args_for_cv, output_directory)
+      repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type)
     if ((n_components < len(feature_list)) & (n_components < int(ds.data.shape[0]*0.8))): 
-      output_directory = os.path.join(results_directory, f'Model_{gene_type}_PCTotal_{n_components}')
+      output_directory = os.path.join(results_directory, f'Model_{gene_type}_PCTotal_{n_components}_{cv_type}')
       if os.path.exists(output_directory) is False:
         os.mkdir(output_directory)
       args_for_cv['transformation'] = reduce_dimensions
       args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(feature_list),
               'reducer':PCA, 'n_components':n_components}
       
-      repeat_cv(ds.data, feature_list, args_for_cv, output_directory)
+      repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type)
   for n_components in [10, 15, 30, 50, len(features[gene_type])]:
       if n_components >= len(features[gene_type]):
         continue
       if len(features[gene_type]) >= int(ds.data.shape[0]*0.8):
         continue
-      output_directory = os.path.join(results_directory, f'Model_{gene_type}_ReGain_{n_components}')
+      output_directory = os.path.join(results_directory, f'Model_{gene_type}_ReGain_{n_components}_{cv_type}')
       if os.path.exists(output_directory) is False:
         os.mkdir(output_directory)
       args_for_cv['transformation'] = reduce_dimensions
       args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(features[gene_type]),
               'reducer':ReGainBootleg, 'n_components':n_components}
-      repeat_cv(ds.data, feature_list, args_for_cv, output_directory)
+      repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type)
 
 
 
