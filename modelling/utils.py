@@ -387,7 +387,7 @@ class CV():
         train_X, transformer, new_feature_order =  transformation(train_X, train_y, **transformation_args)
         test_X, _, _ = transformation(test_X, test_y, reducer = transformer, n_components = transformation_args['n_components'],
                                features = transformation_args['features'], features_to_change = transformation_args['features_to_change'], trained = True)
-        feature_order['Train2020_Test2021'] = new_feature_order
+        feature_order['Train2021_Test2020'] = new_feature_order
     for model_name in model_classes:
         model_class = model_classes[model_name]
         model = model_class(**model_params[model_name])
