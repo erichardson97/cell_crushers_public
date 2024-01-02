@@ -128,8 +128,12 @@ for file in glob(os.path.join(data_directory, 'correlation_filtered', '*tsv')):
   for n_components in [10, 15, 30, 50, len(genes)]:
     if n_components >= len(genes):
       continue
-    if len(genes) >= int(ds.data.shape[0]*0.8):
-      continue
+    if cv_type != 'CrossDataset':
+      if len(genes) >= int(ds.data.shape[0]*0.8):
+        continue
+      else:
+        if len(genes) >= ds.data['dataset'].value_counts().min():
+          continue
     output_directory = os.path.join(results_directory, f'Model_NoncorrelatedGenes{threshold}_ReGain_{n_components}_{cv_type}')
     if os.path.exists(output_directory) is False:
       os.mkdir(output_directory)
@@ -153,28 +157,42 @@ for gene_type in ['all_genes', 'filtered_genes', 'literature_genes','literature_
                'model_classes':model_classes, 'return_coef':return_coef, 'plot' : False}
   repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type)
   for n_components in [10, 15, 30, len(feature_list)]:
-    if ((n_components < len(features[gene_type])) & (n_components < int(ds.data.shape[0]*0.8))):
-      output_directory = os.path.join(results_directory, f'Model_{gene_type}_PCGenes_{n_components}_{cv_type}')
-      if os.path.exists(output_directory) is False:
-        os.mkdir(output_directory)
-      args_for_cv['transformation'] = reduce_dimensions
-      args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(features[gene_type]),
-              'reducer':PCA, 'n_components':n_components}
-      repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type)
-    if ((n_components < len(feature_list)) & (n_components < int(ds.data.shape[0]*0.8))): 
-      output_directory = os.path.join(results_directory, f'Model_{gene_type}_PCTotal_{n_components}_{cv_type}')
-      if os.path.exists(output_directory) is False:
-        os.mkdir(output_directory)
-      args_for_cv['transformation'] = reduce_dimensions
-      args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(feature_list),
-              'reducer':PCA, 'n_components':n_components}
-      
-      repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type)
+    if cv_type != "CrossDataset":
+      if ((n_components >= len(features[gene_type])) | (n_components >= int(ds.data.shape[0]*0.8))):
+        continue
+    else:
+      if ((n_components >= len(features[gene_type])) | (n_components >= ds.data['dataset'].value_counts().min())):
+        continue
+    output_directory = os.path.join(results_directory, f'Model_{gene_type}_PCGenes_{n_components}_{cv_type}')
+    if os.path.exists(output_directory) is False:
+      os.mkdir(output_directory)
+    args_for_cv['transformation'] = reduce_dimensions
+    args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(features[gene_type]),
+            'reducer':PCA, 'n_components':n_components}
+    repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type)
+    if cv_type != 'CrossDataset':
+      if ((n_components >= len(feature_list)) & (n_components >= int(ds.data.shape[0]*0.8))): 
+        continue
+    else:
+      if ((n_components >= len(feature_list)) | (n_components >= ds.data['dataset'].value_counts().min())):
+        continue
+    output_directory = os.path.join(results_directory, f'Model_{gene_type}_PCTotal_{n_components}_{cv_type}')
+    if os.path.exists(output_directory) is False:
+      os.mkdir(output_directory)
+    args_for_cv['transformation'] = reduce_dimensions
+    args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(feature_list),
+            'reducer':PCA, 'n_components':n_components}
+    
+    repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type)
   for n_components in [10, 15, 30, 50, len(features[gene_type])]:
       if n_components >= len(features[gene_type]):
         continue
-      if len(features[gene_type]) >= int(ds.data.shape[0]*0.8):
-        continue
+      if cv_type != 'CrossDataset':
+        if len(features[gene_type]) >= int(ds.data.shape[0]*0.8):
+          continue
+      else:
+        if len(features[gene_type]) >= ds.data['dataset'].value_counts().min():
+          continue
       output_directory = os.path.join(results_directory, f'Model_{gene_type}_ReGain_{n_components}_{cv_type}')
       if os.path.exists(output_directory) is False:
         os.mkdir(output_directory)
