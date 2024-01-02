@@ -131,9 +131,9 @@ for file in glob(os.path.join(data_directory, 'correlation_filtered', '*tsv')):
     if cv_type != 'CrossDataset':
       if len(genes) >= int(ds.data.shape[0]*0.8):
         continue
-      else:
-        if len(genes) >= ds.data['dataset'].value_counts().min():
-          continue
+    else:
+      if len(genes) >= ds.data['dataset'].value_counts().min():
+        continue
     output_directory = os.path.join(results_directory, f'Model_NoncorrelatedGenes{threshold}_ReGain_{n_components}_{cv_type}')
     if os.path.exists(output_directory) is False:
       os.mkdir(output_directory)
