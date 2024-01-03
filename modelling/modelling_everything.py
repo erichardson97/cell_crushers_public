@@ -124,7 +124,7 @@ for file in glob(os.path.join(data_directory, 'correlation_filtered', '*tsv')):
   genes = [p for p in ds.data if 'GEX' in p]
   feature_list = genes 
   if use_olink:
-    feauture_list += features['cytokine']
+    feature_list += features['cytokine']
   if use_cellfreq:
     feature_list +=  features['cell_freq']
   feature_list += features['demographic']
@@ -160,7 +160,7 @@ for gene_type in ['all_genes', 'filtered_genes', 'literature_genes','literature_
   ds.filter(['Titre_IgG_PT','Target'])
   feature_list = features[gene_type]
   if use_olink:
-    feauture_list += features['cytokine']
+    feature_list += features['cytokine']
   if use_cellfreq:
     feature_list +=  features['cell_freq']
   feature_list += features['demographic']
