@@ -78,12 +78,19 @@ def load_data(path = '/content/drive/MyDrive/CMIPB_Files/IntegratedData.tsv', ta
   return ds
   
 data_directory = '/mnt/bioadhoc/Users/erichard/cell_crushers/data/'
-results_directory = '/mnt/bioadhoc/Users/erichard/cell_crushers/results'
-
+results_directory = '/mnt/bioadhoc/Users/erichard/cell_crushers/results_no_cellfreq'
+if os.path.exists(results_directory) is False:
+  os.mkdir(results_directory)
+  
 features = pd.read_pickle(os.path.join(data_directory, 'AllFeatures.p'))
 
 gene_type = 'all_genes' #'filtered', 'uncorrelated'
-cv_type = 'CrossDataset'
+cv_type = 'RegularCV'
+use_olink = True
+use_cellfreq = False
+use_genes = True
+
+
 model_params = {}
 model_classes = {}
 return_coef = {}
@@ -115,7 +122,13 @@ for file in glob(os.path.join(data_directory, 'correlation_filtered', '*tsv')):
   ds = load_data(file)
   ds.filter(['Titre_IgG_PT','Target'])
   genes = [p for p in ds.data if 'GEX' in p]
-  feature_list =  genes + features['cell_freq'] + features['cytokine'] + features['demographic']
+  if 'cell_freq' not in features:
+  feature_list = genes 
+  if use_olink:
+    feauture_list += features['cytokine']
+  if use_cellfreq:
+    feature_list +=  features['cell_freq']
+  feature_list += features['demographic']
   ds.filter(feature_list)
   assert feature_list[-1] == 'Titre_IgG_PT'
   output_directory = os.path.join(results_directory, f'Model_NoncorrelatedGenes_{threshold}_{cv_type}')
@@ -146,7 +159,12 @@ for gene_type in ['all_genes', 'filtered_genes', 'literature_genes','literature_
   target = 'Day14_IgG_Titre'
   ds = load_data(os.path.join(data_directory, "IntegratedData_Normalized.tsv"))
   ds.filter(['Titre_IgG_PT','Target'])
-  feature_list = features[gene_type] + features['cell_freq'] + features['cytokine'] + features['demographic']
+  feature_list = features[gene_type]
+  if use_olink:
+    feauture_list += features['cytokine']
+  if use_cellfreq:
+    feature_list +=  features['cell_freq']
+  feature_list += features['demographic']
   assert feature_list[-1] == 'Titre_IgG_PT'
   ds.filter(feature_list)
   output_directory = os.path.join(results_directory, f'Model_{gene_type}_{cv_type}')
