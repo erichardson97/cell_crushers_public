@@ -122,7 +122,6 @@ for file in glob(os.path.join(data_directory, 'correlation_filtered', '*tsv')):
   ds = load_data(file)
   ds.filter(['Titre_IgG_PT','Target'])
   genes = [p for p in ds.data if 'GEX' in p]
-  if 'cell_freq' not in features:
   feature_list = genes 
   if use_olink:
     feauture_list += features['cytokine']
