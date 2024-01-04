@@ -81,9 +81,9 @@ def repeat_cv(data, candidate_features, args_for_cv, output_path, cv_type = 'Reg
   return total
   
 
-def load_data(path = '/content/drive/MyDrive/CMIPB_Files/IntegratedData.tsv', target = 'Day14_IgG_Titre', transform = True):
+def load_data(path = '/content/drive/MyDrive/CMIPB_Files/IntegratedData.tsv', target = 'Day14_IgG_Titre', transform = True, keep = True):
   data = pd.read_csv(path, sep = '\t', index_col = 0)
-  if 'Target' in data:
+  if ('Target' in data) & (keep == False):
     del data['Target']
   data = data.rename(columns = {target: 'Target'})
   data = data[data['Target'].notna()]
