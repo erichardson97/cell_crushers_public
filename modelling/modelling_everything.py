@@ -18,6 +18,8 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.decomposition import PCA
 from glob import glob
 
+use_baseline = True
+target = 'Day14_IgG_Titre'
 
 def calc_residuals_for_prediction(baseline, y):
   slope, intercept, r, p, se = linregress(baseline, y)
@@ -32,7 +34,7 @@ def calc_residuals_for_prediction_Rank(baseline, y):
   residuals = (true_rank - prediction_rank) / prediction_rank.shape[0]
   return slope, intercept, np.array(residuals)
 
-use_baseline = True
+
 def residuals_model(base_class: sklearn.base.BaseEstimator):
   class ResidualModel(base_class):
 
@@ -130,9 +132,8 @@ for params in ParameterGrid({'max_features':[None, 'sqrt', 'log2'], 'n_estimator
 
 
 for file in glob(os.path.join(data_directory, 'correlation_filtered', '*tsv')):
-  target = 'Day14_IgG_FC'
   threshold = file.split('/')[-1][19:].split('.tsv')[0]
-  ds = load_data(file, target = 'Day14_IgG_FC')
+  ds = load_data(file, target = target)
   ds.filter(['Titre_IgG_PT','Target'])
   genes = [p for p in ds.data if 'GEX' in p]
   feature_list = genes 
@@ -170,7 +171,6 @@ for file in glob(os.path.join(data_directory, 'correlation_filtered', '*tsv')):
     ds.data[feature_list].to_csv(os.path.join(output_directory,'dataset.tsv'),sep='\t')
     
 for gene_type in ['all_genes', 'filtered_genes', 'literature_genes','literature_genes>1', 'GO_Genes']:
-  target = 'Day14_IgG_FC'
   ds = load_data(os.path.join(data_directory, "IntegratedData_Normalized.tsv"), target = target)
   ds.filter(['Titre_IgG_PT','Target'])
   feature_list = features[gene_type]
