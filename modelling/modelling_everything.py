@@ -86,7 +86,7 @@ def load_data(path = '/content/drive/MyDrive/CMIPB_Files/IntegratedData.tsv', ta
   return ds
   
 data_directory = '/mnt/bioadhoc/Users/erichard/cell_crushers/data/'
-results_directory = '/mnt/bioadhoc/Users/erichard/cell_crushers/results_noolink'
+results_directory = '/mnt/bioadhoc/Users/erichard/cell_crushers/results_FC'
 if os.path.exists(results_directory) is False:
   os.mkdir(results_directory)
   
@@ -94,7 +94,7 @@ features = pd.read_pickle(os.path.join(data_directory, 'AllFeatures.p'))
 
 gene_type = 'all_genes' #'filtered', 'uncorrelated'
 cv_type = 'RegularCV'
-use_olink = False
+use_olink = True
 use_cellfreq = True
 use_genes = True
 
@@ -125,9 +125,9 @@ for params in ParameterGrid({'max_features':[None, 'sqrt', 'log2'], 'n_estimator
 
 
 for file in glob(os.path.join(data_directory, 'correlation_filtered', '*tsv')):
-  target = 'Day14_IgG_Titre'
+  target = 'Day14_IgG_FC'
   threshold = file.split('/')[-1][19:].split('.tsv')[0]
-  ds = load_data(file)
+  ds = load_data(file, target = 'Day14_IgG_FC')
   ds.filter(['Titre_IgG_PT','Target'])
   genes = [p for p in ds.data if 'GEX' in p]
   feature_list = genes 
@@ -165,8 +165,8 @@ for file in glob(os.path.join(data_directory, 'correlation_filtered', '*tsv')):
     ds.data[feature_list].to_csv(os.path.join(output_directory,'dataset.tsv'),sep='\t')
     
 for gene_type in ['all_genes', 'filtered_genes', 'literature_genes','literature_genes>1', 'GO_Genes']:
-  target = 'Day14_IgG_Titre'
-  ds = load_data(os.path.join(data_directory, "IntegratedData_Normalized.tsv"))
+  target = 'Day14_IgG_FC'
+  ds = load_data(os.path.join(data_directory, "IntegratedData_Normalized.tsv"), target = target)
   ds.filter(['Titre_IgG_PT','Target'])
   feature_list = features[gene_type]
   if use_olink:
