@@ -32,6 +32,7 @@ def calc_residuals_for_prediction_Rank(baseline, y):
   residuals = (true_rank - prediction_rank) / prediction_rank.shape[0]
   return slope, intercept, np.array(residuals)
 
+use_baseline = True
 def residuals_model(base_class: sklearn.base.BaseEstimator):
   class ResidualModel(base_class):
 
@@ -40,7 +41,8 @@ def residuals_model(base_class: sklearn.base.BaseEstimator):
 
     def fit(self, X, y):
       baseline = X[:, -1]
-      X = X[:, :-1]
+      if not use_baseline:
+        X = X[:, :-1]
       slope, intercept, residuals = calc_residuals_for_prediction(baseline, y)
       self.slope = slope
       self.intercept = intercept
@@ -48,7 +50,8 @@ def residuals_model(base_class: sklearn.base.BaseEstimator):
 
     def predict(self, X):
       baseline = X[:, -1]
-      X = X[:, :-1]
+      if not use_baseline:
+        X = X[:, :-1]
       residuals = super().predict(X)
       return self.slope * baseline + self.intercept + residuals
   return ResidualModel
@@ -88,7 +91,7 @@ def load_data(path = '/content/drive/MyDrive/CMIPB_Files/IntegratedData.tsv', ta
   return ds
   
 data_directory = '/mnt/bioadhoc/Users/erichard/cell_crushers/data/'
-results_directory = '/mnt/bioadhoc/Users/erichard/cell_crushers/results_FC'
+results_directory = '/mnt/bioadhoc/Users/erichard/cell_crushers/results_inclbaseline'
 if os.path.exists(results_directory) is False:
   os.mkdir(results_directory)
   
