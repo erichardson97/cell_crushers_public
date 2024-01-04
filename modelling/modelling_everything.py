@@ -24,6 +24,14 @@ def calc_residuals_for_prediction(baseline, y):
   residuals = [y_val - (p*slope + intercept) for p, y_val in zip(baseline, y)]
   return slope, intercept, np.array(residuals)
 
+def calc_residuals_for_prediction_Rank(baseline, y):
+  slope, intercept, r, p, se = linregress(baseline, y)
+  predictions = baseline*slope + intercept
+  prediction_rank = np.argsort(predictions)
+  true_rank = np.argsort(y)
+  residuals = (true_rank - prediction_rank) / prediction_rank.shape[0]
+  return slope, intercept, np.array(residuals)
+
 def residuals_model(base_class: sklearn.base.BaseEstimator):
   class ResidualModel(base_class):
 
@@ -33,7 +41,7 @@ def residuals_model(base_class: sklearn.base.BaseEstimator):
     def fit(self, X, y):
       baseline = X[:, -1]
       X = X[:, :-1]
-      slope, intercept, residuals = calc_residuals_for_prediction(baseline, y)
+      slope, intercept, residuals = calc_residuals_for_prediction_Rank(baseline, y)
       self.slope = slope
       self.intercept = intercept
       super().fit(X, residuals)
@@ -78,7 +86,7 @@ def load_data(path = '/content/drive/MyDrive/CMIPB_Files/IntegratedData.tsv', ta
   return ds
   
 data_directory = '/mnt/bioadhoc/Users/erichard/cell_crushers/data/'
-results_directory = '/mnt/bioadhoc/Users/erichard/cell_crushers/results_no_cellfreq'
+results_directory = '/mnt/bioadhoc/Users/erichard/cell_crushers/results_rankresidual'
 if os.path.exists(results_directory) is False:
   os.mkdir(results_directory)
   
@@ -87,7 +95,7 @@ features = pd.read_pickle(os.path.join(data_directory, 'AllFeatures.p'))
 gene_type = 'all_genes' #'filtered', 'uncorrelated'
 cv_type = 'RegularCV'
 use_olink = True
-use_cellfreq = False
+use_cellfreq = True
 use_genes = True
 
 
@@ -137,22 +145,22 @@ for file in glob(os.path.join(data_directory, 'correlation_filtered', '*tsv')):
                'transformation':False, 'plot_dir':output_directory, 'transformation_args':{}, 'model_params': model_params,
                'model_classes':model_classes, 'return_coef':return_coef, 'plot' : False}
   repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type)
-  # for n_components in [10, 15, 30, 50, len(genes)]:
-  #   if n_components >= len(genes):
-  #     continue
-  #   if cv_type != 'CrossDataset':
-  #     if len(genes) >= int(ds.data.shape[0]*0.8):
-  #       continue
-  #   else:
-  #     if len(genes) >= ds.data['dataset'].value_counts().min():
-  #       continue
-  #   output_directory = os.path.join(results_directory, f'Model_NoncorrelatedGenes{threshold}_ReGain_{n_components}_{cv_type}')
-  #   if os.path.exists(output_directory) is False:
-  #     os.mkdir(output_directory)
-  #   args_for_cv['transformation'] = reduce_dimensions
-  #   args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(genes),
-  #           'reducer':ReGainBootleg, 'n_components':n_components}
-  #   repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type)
+  for n_components in [10, 15, 30, 50, len(genes)]:
+    if n_components >= len(genes):
+      continue
+    if cv_type != 'CrossDataset':
+      if len(genes) >= int(ds.data.shape[0]*0.8):
+        continue
+    else:
+      if len(genes) >= ds.data['dataset'].value_counts().min():
+        continue
+    output_directory = os.path.join(results_directory, f'Model_NoncorrelatedGenes{threshold}_ReGain_{n_components}_{cv_type}')
+    if os.path.exists(output_directory) is False:
+      os.mkdir(output_directory)
+    args_for_cv['transformation'] = reduce_dimensions
+    args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(genes),
+            'reducer':ReGainBootleg, 'n_components':n_components}
+    repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type)
     
 for gene_type in ['all_genes', 'filtered_genes', 'literature_genes','literature_genes>1', 'GO_Genes']:
   target = 'Day14_IgG_Titre'
@@ -201,22 +209,22 @@ for gene_type in ['all_genes', 'filtered_genes', 'literature_genes','literature_
             'reducer':PCA, 'n_components':n_components}
     
     repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type)
-  # for n_components in [10, 15, 30, 50, len(features[gene_type])]:
-  #     if n_components >= len(features[gene_type]):
-  #       continue
-  #     if cv_type != 'CrossDataset':
-  #       if len(features[gene_type]) >= int(ds.data.shape[0]*0.8):
-  #         continue
-  #     else:
-  #       if len(features[gene_type]) >= ds.data['dataset'].value_counts().min():
-  #         continue
-  #     output_directory = os.path.join(results_directory, f'Model_{gene_type}_ReGain_{n_components}_{cv_type}')
-  #     if os.path.exists(output_directory) is False:
-  #       os.mkdir(output_directory)
-  #     args_for_cv['transformation'] = reduce_dimensions
-  #     args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(features[gene_type]),
-  #             'reducer':ReGainBootleg, 'n_components':n_components}
-  #     repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type)
+  for n_components in [10, 15, 30, 50, len(features[gene_type])]:
+      if n_components >= len(features[gene_type]):
+        continue
+      if cv_type != 'CrossDataset':
+        if len(features[gene_type]) >= int(ds.data.shape[0]*0.8):
+          continue
+      else:
+        if len(features[gene_type]) >= ds.data['dataset'].value_counts().min():
+          continue
+      output_directory = os.path.join(results_directory, f'Model_{gene_type}_ReGain_{n_components}_{cv_type}')
+      if os.path.exists(output_directory) is False:
+        os.mkdir(output_directory)
+      args_for_cv['transformation'] = reduce_dimensions
+      args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(features[gene_type]),
+              'reducer':ReGainBootleg, 'n_components':n_components}
+      repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type)
 
 
 
