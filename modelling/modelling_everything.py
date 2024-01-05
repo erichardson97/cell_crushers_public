@@ -20,7 +20,7 @@ from glob import glob
 
 use_baseline = True
 target = 'Day14_IgG_Titre'
-cv_type = 'CrossDatasetCV'
+cv_type = 'CrossDataset'
 use_olink = True
 use_cellfreq = True
 use_genes = True
