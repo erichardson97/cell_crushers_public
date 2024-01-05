@@ -2,7 +2,7 @@ import pandas as pd
 from typing import Union, Callable, Protocol
 import numpy as np
 from scipy.stats import spearmanr, linregress
-from sklearn.model_selection import train_test_split, KFold, ParameterGrid
+from sklearn.model_selection import train_test_split, KFold, ParameterGrid, StratifiedKFold
 from collections import defaultdict
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error
@@ -10,6 +10,7 @@ import seaborn as sns
 from itertools import combinations
 from statsmodels.formula import api as smf
 from matplotlib import pyplot as plt
+from sklearn.mixture import GaussianMixture
 import os
 import pickle
 
@@ -32,7 +33,7 @@ class ReGainBootleg():
     self.n_genes = n_components
       
   def fit(self, X, y, fill_missing = True):
-    if len(y.shape) == 0:
+    if len(y.shape) == 1:
       y = y.reshape(-1, 1)
     self.data = pd.DataFrame(np.hstack([X, y]))
     self.data.columns = [f'Feat{p}' for p in range(X.shape[1])]+['Target']
@@ -72,7 +73,7 @@ class ReGainBootleg():
     data.columns = [f'Feat{p}' for p in range(data.shape[1])]
     for pair in self.features:
       data[pair] = data.apply(lambda x:x[pair.split(':')[0]]/x[pair.split(':')[1]] if x[pair.split(':')[1]] != 0 else x[pair.split(':')[0]], axis =1 )
-    return data[self.features]
+    return data[self.features].values
 
 
 def corr_coeff_report(y_pred: list, y_true: list) -> float:
@@ -137,7 +138,7 @@ def reduce_dimensions(X: np.array, y: np.array, features: np.array, features_to_
     else:
       reduction = reducer
       X_trans = reduction.transform(X[:, feature_idxs])
-    X_new = np.hstack([X_trans.values, X[:, features_to_keep]])
+    X_new = np.hstack([X_trans, X[:, features_to_keep]])
     if interpretable:
         old_feature_names = dict((f'Feat{k}', p) for k, p in enumerate(features))
         new_feature_order = [old_feature_names[p.split(':')[0]]+':'+old_feature_names[p.split(':')[1]] for p in X_trans.columns]
@@ -386,7 +387,7 @@ class CV():
         train_X, transformer, new_feature_order =  transformation(train_X, train_y, **transformation_args)
         test_X, _, _ = transformation(test_X, test_y, reducer = transformer, n_components = transformation_args['n_components'],
                                features = transformation_args['features'], features_to_change = transformation_args['features_to_change'], trained = True)
-        feature_order['Train2020_Test2021'] = new_feature_order
+        feature_order['Train2021_Test2020'] = new_feature_order
     for model_name in model_classes:
         model_class = model_classes[model_name]
         model = model_class(**model_params[model_name])
@@ -411,5 +412,89 @@ class CV():
     return scores, trained_models, coefficient_df
 
 
+class CV_GMM():
+  
+  def __init__(self, data: pd.DataFrame):
+    self.data = data
 
+  def RunCV(self, cv_type: str, cv_args: dict):
+    if cv_type == 'RegularCV':
+      return self.regular_ol_cv(**cv_args)
+    elif cv_type == 'CrossDataset':
+      return self.cross_dataset_CV(**cv_args)
+    
+
+  def regular_ol_cv(self, features: list, target: str, n_splits: int, plot_dir: str, score_function: Callable, model_classes: dict = {}, model_params: dict = {}, return_coef: bool | dict = False, normalize = True,
+                     plot: bool = True, transformation: bool | Callable = False, transformation_args: dict = {}, precomputed_split: bool = False):
+    '''
+    Regular CV with no stratification by year.
+    '''
+    self.data['Cluster'] = GaussianMixture(n_components=2).fit_predict(self.data['Titre_IgG_PT'].values.reshape(-1,1))
+    self.data = self.data.sort_values('Cluster')
+    X = self.data[features].values
+    baseline = self.data['Titre_IgG_PT'].values
+    gmm_clusters = self.data['Cluster'].values                
+    y = self.data[target].values
+
+    scores = {'Fold':[], 'Score':[], 'MSE':[], 'Baseline':[], 'Model':[]}
+    trained_models = defaultdict(dict)
+    feature_order = defaultdict(dict)
+    if precomputed_split == False:
+        fold = 0
+        split_indexes = {}
+        for train_idx, test_idx in StratifiedKFold(n_splits = n_splits, shuffle = True).split(X, gmm_clusters):
+            split_indexes[fold] = {'Train':train_idx, 'Test':test_idx}
+            fold += 1  
+        with open(os.path.join(plot_dir, 'CV_Idx.p'), 'wb') as k:
+            pickle.dump(split_indexes, k)
+    else:
+        split_indexes = pd.read_pickle(precomputed_split)
+    for fold in split_indexes:
+        train_idx = split_indexes[fold]['Train']
+        test_idx = split_indexes[fold]['Test']
+        train_X, train_y = X[train_idx], y[train_idx]
+        test_X, test_y = X[test_idx], y[test_idx]
+        train_label, test_label = gmm_clusters[train_idx], gmm_clusters[test_idx]
+        if normalize:
+            train_X = StandardScaler().fit_transform(train_X)
+            train_y = StandardScaler().fit_transform(train_y.reshape(-1,1)).ravel()
+            test_X = StandardScaler().fit_transform(test_X)
+            test_y = StandardScaler().fit_transform(test_y.reshape(-1,1)).ravel()
+        if transformation:
+            assert train_X.shape[1] == test_X.shape[1]
+            train_X, transformer, new_feature_order =  transformation(train_X, train_y, **transformation_args)
+            test_X, _, _ = transformation(test_X, test_y, reducer = transformer, n_components = transformation_args['n_components'],
+                               features = transformation_args['features'], features_to_change = transformation_args['features_to_change'], trained = True)
+            feature_order[fold] = new_feature_order
+        for model_name in model_classes:
+            model_class = model_classes[model_name]
+            model1 = model_class(**model_params[model_name])
+            model2 = model_class(**model_params[model_name])
+            model1.fit(train_X[:, np.where(train_label==0)[0]], train_y[np.where(train_label==0)[0]])
+            model2.fit(train_X[:, np.where(train_label==1)[0]], train_y[np.where(train_label==1)[0]])
+            assert test_X.shape[1] == train_X.shape[1]
+            order = test_X[np.argsort(test_label)]
+            test_y = test_Y[np.argsort(test_label)]
+            baseline_test = baseline[np.argsort(test_label)]
+            test_labels = test_label[np.argsort(test_label)]
+            val1 = model1.predict(test_X[:, np.where(test_labels==0)[0]])
+            val2 = model2.predict(test_X[:, np.where(test_labels==1)[0]])
+            val = np.hstack([val1, val2])
+            score = score_function(test_y, val)
+            baseline_score = score_function(test_y, baseline_test)
+            scores['Fold'].append(fold)
+            scores['Score'].append(score)
+            scores['MSE'].append(mean_squared_error(test_y, val))
+            scores['Baseline'].append(baseline_score)
+            scores['Model'].append(model_name)
+            trained_models[fold][model_name] = model
+    scores = pd.DataFrame(scores)
+    if return_coef:
+        if not transformation:
+            coefficient_df = pd.concat([pd.DataFrame(dict((p, dict((features[m], y) for m,y in enumerate(return_property(trained_models[x][p], return_coef[p])))) for p in trained_models[x] if p in return_coef)).T.assign(Fold=x) for x in trained_models])
+        else:
+            coefficient_df = pd.concat([pd.DataFrame(dict((p, dict((feature_order[x][m], y) for m,y in enumerate(return_property(trained_models[x][p], return_coef[p])))) for p in trained_models[x] if p in return_coef)).T.assign(Fold=x) for x in trained_models])
+    else:
+        coefficient_df = None
+    return scores, trained_models, coefficient_df
 
