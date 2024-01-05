@@ -33,7 +33,7 @@ class Dataset():
     for this feature
     '''
     if feature_list != []:
-      self.feature_list = list(set(feature_list).union(set(self.demographic_features))) + ['Target']
+      self.feature_list = list(set(feature_list).union(set(self.demographic_features))) #+ ['Target']
     else:
       self.feature_list = self.data.columns
     self.data = self.data.dropna(subset = self.feature_list)
@@ -53,7 +53,7 @@ class Dataset():
     Pass a list of continuous features for use by StandardScaler
     '''
     self.data = self.data.copy()
-    features_to_normalize.append('Target')
+  #  features_to_normalize.append('Target')
     features_to_normalize = list(set(features_to_normalize))
     self.data[features_to_normalize] = StandardScaler().fit_transform(self.data[features_to_normalize])
     self.record_transform(features_to_normalize, 'Z-scale')
