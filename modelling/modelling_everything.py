@@ -18,8 +18,8 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.decomposition import PCA
 from glob import glob
 
-use_baseline = False
-target = 'Day14_IgG_FC'
+use_baseline = True
+target = 'Day14_IgG_Titre'
 cv_type = 'CrossDatasetCV'
 use_olink = True
 use_cellfreq = True
@@ -97,7 +97,7 @@ def load_data(path = '/content/drive/MyDrive/CMIPB_Files/IntegratedData.tsv', ta
   return ds
   
 data_directory = '/mnt/bioadhoc/Users/erichard/cell_crushers/data/'
-results_directory = '/mnt/bioadhoc/Users/erichard/cell_crushers/results_FC'
+results_directory = '/mnt/bioadhoc/Users/erichard/cell_crushers/results_inclbaseline'
 if os.path.exists(results_directory) is False:
   os.mkdir(results_directory)
   
