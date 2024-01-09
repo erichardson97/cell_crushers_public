@@ -14,12 +14,16 @@ from sklearn.mixture import GaussianMixture
 import os
 import pickle
 
-
 class EnsembleModel():
-    def __init__(self, X, y, feature_order):
-        self.X = X
-        self.y = y
+    def __init__(self, ensemble_model: ScikitClass, ensemble_model_kwargs: dict, feature_groups: dict, models: dict, model_kwargs: dict,
+                feature_order: list, coef: str = 'coef_'):
+        self.ensemble_model = ensemble_model
         self.feature_order = list(feature_order)
+        self.ensemble_model_kwargs = ensemble_model_kwargs
+        self.feature_groups = feature_groups
+        self.models = models
+        self.model_kwargs = model_kwargs
+        self.coef = coef
         
     def train_models(self, feature_groups: dict, models: dict, model_kwargs: dict):
         trained_models = {}
@@ -40,16 +44,16 @@ class EnsembleModel():
         total = pd.DataFrame(total)
         return total.values
         
-    def train_ensemble_model(self, ensemble_model: ScikitClass, ensemble_model_kwargs: dict, feature_groups: dict, models: dict, model_kwargs: dict):
-        self.train_models(feature_groups, models, model_kwargs)
+    def fit(self, X, y):
+        self.X = X
+        self.y = y
+        self.train_models(self.feature_groups, self.models, self.model_kwargs)
         new_X = self.calculate_features_from_submodels(self.X)
-        self.ensemble = ensemble_model(**ensemble_model_kwargs)
+        self.ensemble = self.ensemble_model(**self.ensemble_model_kwargs)
         self.ensemble.fit(new_X, self.y)
-
-    def predict(self, X):
-        new_X = self.calculate_features_from_submodels(X)
-        preds = self.ensemble.predict(new_X)
-        return preds
+        if self.coef:
+            self.coef_individual = {p:dict((p,v) for v,p in zip(return_property(self.trained_models[p][0],self.coef),self.feature_groups[p])) for p in self.models}
+            self.coef_total = dict((k,p) for k,p in zip(self.trained_models, return_property(self.ensemble, 'coef_')))
 
 class ScikitClass(Protocol):
     def fit(self, X, y, sample_weight=None): ...
