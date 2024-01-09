@@ -14,6 +14,43 @@ from sklearn.mixture import GaussianMixture
 import os
 import pickle
 
+
+class EnsembleModel():
+    def __init__(self, X, y, feature_order):
+        self.X = X
+        self.y = y
+        self.feature_order = list(feature_order)
+        
+    def train_models(self, feature_groups: dict, models: dict, model_kwargs: dict):
+        trained_models = {}
+        for group in feature_groups:
+            cols = [self.feature_order.index(p) for p in feature_groups[group]]
+            model_class = models[group]
+            model = model_class(**model_kwargs[group])
+            model.fit(X[:, cols], y)
+            trained_models[group] = (model, cols)
+        self.trained_models = trained_models
+        
+    def calculate_features_from_submodels(self, X):
+        total = {}
+        for model_name in self.trained_models:
+            model, cols = self.trained_models[model_name]
+            output = model.predict(X[:, cols])
+            total[model_name] = output
+        total = pd.DataFrame(total)
+        return total.values
+        
+    def train_ensemble_model(self, ensemble_model: ScikitClass, ensemble_model_kwargs: dict, feature_groups: dict, models: dict, model_kwargs: dict):
+        self.train_models(feature_groups, models, model_kwargs)
+        new_X = self.calculate_features_from_submodels(self.X)
+        self.ensemble = ensemble_model(**ensemble_model_kwargs)
+        self.ensemble.fit(new_X, self.y)
+
+    def predict(self, X):
+        new_X = self.calculate_features_from_submodels(X)
+        preds = self.ensemble.predict(new_X)
+        return preds
+
 class ScikitClass(Protocol):
     def fit(self, X, y, sample_weight=None): ...
     def predict(self, X): ...
