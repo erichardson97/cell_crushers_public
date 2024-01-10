@@ -496,6 +496,8 @@ class CV_GMM():
         test_idx = split_indexes[fold]['Test']
         train_X, train_y = X[train_idx], y[train_idx]
         test_X, test_y = X[test_idx], y[test_idx]
+        test_baseline = baseline[test_idx]
+        train_baseline = baseline[train_idx]
         train_label, test_label = gmm_clusters[train_idx], gmm_clusters[test_idx]
         if normalize:
             train_X = StandardScaler().fit_transform(train_X)
@@ -512,13 +514,12 @@ class CV_GMM():
             model_class = model_classes[model_name]
             model1 = model_class(**model_params[model_name])
             model2 = model_class(**model_params[model_name])
-            print(train_X[np.where(train_label==0)[0], :], train_y[np.where(train_label==0)[0]])
             model1.fit(train_X[np.where(train_label==0)[0], :], train_y[np.where(train_label==0)[0]])
             model2.fit(train_X[np.where(train_label==1)[0], :], train_y[np.where(train_label==1)[0]])
             assert test_X.shape[1] == train_X.shape[1]
             order = test_X[np.argsort(test_label)]
             test_y = test_y[np.argsort(test_label)]
-            baseline_test = baseline[np.argsort(test_label)]
+            baseline_test = test_baseline[np.argsort(test_label)]
             test_labels = test_label[np.argsort(test_label)]
             val1 = model1.predict(test_X[ np.where(test_labels==0)[0], :])
             val2 = model2.predict(test_X[ np.where(test_labels==1)[0], :])
