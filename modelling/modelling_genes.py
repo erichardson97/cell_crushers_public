@@ -136,7 +136,7 @@ for params in ParameterGrid({'loss':['squared_error','absolute_error'], 'n_estim
 
 for file in glob(os.path.join(data_directory, 'correlation_filtered', '*tsv')):
   for cv_type in ['RegularCV','CrossDataset']:
-    for target in ['Titre_IgG_PT','Titre_IgG_FC']:
+    for target in ['Day14_IgG_Titre','Day14_IgG_FC']:
       threshold = file.split('/')[-1][19:].split('.tsv')[0]
       ds = load_data(file, target = target)
       ds.filter(['Titre_IgG_PT','Target'])
