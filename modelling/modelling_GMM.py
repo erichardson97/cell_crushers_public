@@ -221,7 +221,8 @@ for cv_type in ['RegularCV']:
         feature_list +=  features['cell_freq']
       feature_list += features['demographic']
       assert feature_list[-1] == 'Titre_IgG_PT'
-      ds.filter(feature_list, nan_policy = 'keep')
+      ds.filter(feature_list, nan_policy = 'drop')
+      ds.data['Cluster'] = GaussianMixture(n_components=2).fit_predict(ds.data['Titre_IgG_PT'].values.reshape(-1,1))
       output_directory = os.path.join(results_directory, f'Model_{gene_type}_{cv_type}_{target}')
       if os.path.exists(output_directory) is False:
         os.mkdir(output_directory)
