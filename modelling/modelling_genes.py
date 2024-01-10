@@ -19,6 +19,8 @@ from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.decomposition import PCA
 from glob import glob
 
+use_baseline= False
+
 def calc_residuals_for_prediction(baseline, y):
   slope, intercept, r, p, se = linregress(baseline, y)
   residuals = [y_val - (p*slope + intercept) for p, y_val in zip(baseline, y)]
