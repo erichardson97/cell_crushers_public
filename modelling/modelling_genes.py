@@ -140,7 +140,7 @@ for file in glob(os.path.join(data_directory, 'correlation_filtered', '*tsv')):
       threshold = file.split('/')[-1][19:].split('.tsv')[0]
       ds = load_data(file, target = target)
       ds.filter(['Titre_IgG_PT','Target'])
-      feautre_list = [p for p in ds.data if 'GEX' in p]
+      feature_list = [p for p in ds.data if 'GEX' in p]
       feature_list += features['demographic']
       ds.filter(feature_list)
       assert feature_list[-1] == 'Titre_IgG_PT'
