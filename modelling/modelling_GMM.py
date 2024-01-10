@@ -16,7 +16,7 @@ from sklearn.linear_model import Ridge, Lasso, LinearRegression
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 # from sklearn.cross_decomposition import PLSRegression
 from sklearn.decomposition import PCA
-from sklearn.mixture import GaussianMixtureModel
+from sklearn.mixture import GaussianMixture
 from glob import glob
 
 use_baseline = True
