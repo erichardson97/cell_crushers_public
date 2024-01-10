@@ -91,10 +91,11 @@ def train_test_split(X, y, n_splits = 5, repeats = 10, stratify = False):
   for repeat in range(repeats):
     fold = 0
     split_indexes[repeat] = {}
-    if stratify == False:
-      for train_idx, test_idx in KFold(n_splits = n_splits, shuffle = True).split(X, y):
-          split_indexes[repeat][fold] = {'Train':train_idx, 'Test':test_idx}
-          fold += 1  
+    if type(stratify) == bool:
+      if stratify == True:
+        for train_idx, test_idx in KFold(n_splits = n_splits, shuffle = True).split(X, y):
+            split_indexes[repeat][fold] = {'Train':train_idx, 'Test':test_idx}
+            fold += 1  
     else:
         for train_idx, test_idx in StratifiedKFold(n_splits = n_splits, shuffle = True).split(X, stratify):
             split_indexes[fold] = {'Train':train_idx, 'Test':test_idx}
