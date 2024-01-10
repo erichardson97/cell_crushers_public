@@ -22,7 +22,7 @@ use_baseline = True
 target = 'Day14_IgG_Titre'
 cv_type = 'RegularCV'
 use_olink = True
-use_cellfreq = True
+use_cellfreq = False
 use_genes = True
 
 def calc_residuals_for_prediction(baseline, y):
@@ -107,7 +107,7 @@ def load_data(path = '/content/drive/MyDrive/CMIPB_Files/IntegratedData.tsv', ta
   return ds
   
 data_directory = '/mnt/bioadhoc/Users/erichard/cell_crushers/data/'
-results_directory = '/mnt/bioadhoc/Users/erichard/cell_crushers/results_median_missing'
+results_directory = '/mnt/bioadhoc/Users/erichard/cell_crushers/results_median_missing_nocellfreq'
 if os.path.exists(results_directory) is False:
   os.mkdir(results_directory)
   
