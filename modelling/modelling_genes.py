@@ -11,7 +11,7 @@ from data_utils import *
 from utils import *
 from scipy.stats import linregress
 from scipy.stats import spearmanr, linregress
-from sklearn.model_selection import ParameterGrid
+from sklearn.model_selection import ParameterGrid, KFold
 from sklearn.linear_model import Ridge, Lasso, LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.ensemble import GradientBoostingRegressor
