@@ -27,7 +27,7 @@ class Dataset():
     self.dtypes[self.transform_id] = dict(self.data.dtypes)
     self.transform_id += 1
 
-  def filter(self, feature_list: list = []):
+  def filter(self, feature_list: list = [], nan_policy: str = 'drop'):
     '''
     Pass a feature list and will filter to the subset of rows which have a value
     for this feature
@@ -36,7 +36,12 @@ class Dataset():
       self.feature_list = list(set(feature_list).union(set(self.demographic_features))) #+ ['Target']
     else:
       self.feature_list = self.data.columns
-    self.data = self.data.dropna(subset = self.feature_list)
+    self.data.dropna(subset=["Target"])
+    if nan_policy == 'drop':
+      self.data = self.data.dropna(subset = self.feature_list)
+    else:
+      for col in self.feature_list:
+        self.data[col] = self.data[col].fillna(self.data[col].median())
     self.record_transform(self.feature_list, 'Remove NaN')
     
   def make_float(self, feature_list: list = []):
