@@ -41,7 +41,8 @@ class Dataset():
       self.data = self.data.dropna(subset = self.feature_list)
     else:
       for col in self.feature_list:
-        self.data[col] = self.data[col].fillna(self.data[col].median())
+        if type(self.data[col][self.data[col].notna()].iloc[0]) != str:
+          self.data[col] = self.data[col].fillna(self.data[col].median())
     self.record_transform(self.feature_list, 'Remove NaN')
     
   def make_float(self, feature_list: list = []):
