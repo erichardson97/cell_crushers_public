@@ -453,7 +453,6 @@ class CV():
         coefficient_df = None
     return scores, trained_models, coefficient_df
 
-
 class CV_GMM():
   
   def __init__(self, data: pd.DataFrame):
@@ -467,15 +466,16 @@ class CV_GMM():
     
 
   def regular_ol_cv(self, features: list, target: str, n_splits: int, plot_dir: str, score_function: Callable, model_classes: dict = {}, model_params: dict = {}, return_coef: bool | dict = False, normalize = True,
-                     plot: bool = True, transformation: bool | Callable = False, transformation_args: dict = {}, precomputed_split: bool = False):
+                     plot: bool = True, transformation: bool | Callable = False, transformation_args: dict = {}, precomputed_split: bool = False, cluster: bool = True):
     '''
     Regular CV with no stratification by year.
     '''
-    self.data['Cluster'] = GaussianMixture(n_components=2).fit_predict(self.data['Titre_IgG_PT'].values.reshape(-1,1))
+    if cluster:
+      self.data['Cluster'] = GaussianMixture(n_components=2).fit_predict(self.data['Titre_IgG_PT'].values.reshape(-1,1))
     self.data = self.data.sort_values('Cluster')
     X = self.data[features].values
     baseline = self.data['Titre_IgG_PT'].values
-    gmm_clusters = self.data['Cluster'].values                
+    gmm_clusters = self.data['Cluster'].values             
     y = self.data[target].values
 
     scores = {'Fold':[], 'Score':[], 'MSE':[], 'Baseline':[], 'Model':[]}
@@ -512,15 +512,16 @@ class CV_GMM():
             model_class = model_classes[model_name]
             model1 = model_class(**model_params[model_name])
             model2 = model_class(**model_params[model_name])
-            model1.fit(train_X[:, np.where(train_label==0)[0]], train_y[np.where(train_label==0)[0]])
-            model2.fit(train_X[:, np.where(train_label==1)[0]], train_y[np.where(train_label==1)[0]])
+            print(train_X[np.where(train_label==0)[0], :], train_y[np.where(train_label==0)[0]])
+            model1.fit(train_X[np.where(train_label==0)[0], :], train_y[np.where(train_label==0)[0]])
+            model2.fit(train_X[np.where(train_label==1)[0], :], train_y[np.where(train_label==1)[0]])
             assert test_X.shape[1] == train_X.shape[1]
             order = test_X[np.argsort(test_label)]
-            test_y = test_Y[np.argsort(test_label)]
+            test_y = test_y[np.argsort(test_label)]
             baseline_test = baseline[np.argsort(test_label)]
             test_labels = test_label[np.argsort(test_label)]
-            val1 = model1.predict(test_X[:, np.where(test_labels==0)[0]])
-            val2 = model2.predict(test_X[:, np.where(test_labels==1)[0]])
+            val1 = model1.predict(test_X[ np.where(test_labels==0)[0], :])
+            val2 = model2.predict(test_X[ np.where(test_labels==1)[0], :])
             val = np.hstack([val1, val2])
             score = score_function(test_y, val)
             baseline_score = score_function(test_y, baseline_test)
@@ -529,7 +530,8 @@ class CV_GMM():
             scores['MSE'].append(mean_squared_error(test_y, val))
             scores['Baseline'].append(baseline_score)
             scores['Model'].append(model_name)
-            trained_models[fold][model_name] = model
+            trained_models[fold][model_name+'_1'] = model1
+            trained_models[fold][model_name+'_2'] = model2
     scores = pd.DataFrame(scores)
     if return_coef:
         if not transformation:
