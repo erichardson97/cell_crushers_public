@@ -64,7 +64,7 @@ def residuals_model(base_class: sklearn.base.BaseEstimator):
   return ResidualModel
 
 def repeat_cv(data, candidate_features, args_for_cv, output_path, cv_type = 'RegularCV', cv_path: str = ''):
-  cvobj = CV_GMM(data[candidate_features+['Target', 'dataset']])
+  cvobj = CV_GMM(data[candidate_features+['Target', 'dataset', 'Cluster']])
   total = []
   coefs_ = []
   n_repeats = 10 if cv_type == 'RegularCV' else 1
