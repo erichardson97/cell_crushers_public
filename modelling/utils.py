@@ -14,6 +14,13 @@ from sklearn.mixture import GaussianMixture
 import os
 import pickle
 
+
+class ScikitClass(Protocol):
+    def fit(self, X, y, sample_weight=None): ...
+    def predict(self, X): ...
+    def score(self, X, y, sample_weight=None): ...
+    def set_params(self, **params): ...
+
 class EnsembleModel():
     def __init__(self, ensemble_model: ScikitClass, ensemble_model_kwargs: dict, feature_groups: dict, models: dict, model_kwargs: dict,
                 feature_order: list, coef: str = 'coef_'):
@@ -54,13 +61,7 @@ class EnsembleModel():
         if self.coef:
             self.coef_individual = {p:dict((p,v) for v,p in zip(return_property(self.trained_models[p][0],self.coef),self.feature_groups[p])) for p in self.models}
             self.coef_total = dict((k,p) for k,p in zip(self.trained_models, return_property(self.ensemble, 'coef_')))
-
-class ScikitClass(Protocol):
-    def fit(self, X, y, sample_weight=None): ...
-    def predict(self, X): ...
-    def score(self, X, y, sample_weight=None): ...
-    def set_params(self, **params): ...
-
+            
 def plot_total(total):
   order = total.groupby('Model').apply(lambda x:x["Score"].mean()).sort_values(ascending=False).index
   df = total.melt(id_vars=['Model'],value_vars=['Baseline',"Score"])
