@@ -98,7 +98,7 @@ def train_test_split(X, y, n_splits = 5, repeats = 10, stratify = False):
             fold += 1  
     else:
         for train_idx, test_idx in StratifiedKFold(n_splits = n_splits, shuffle = True).split(X, stratify):
-            split_indexes[fold] = {'Train':train_idx, 'Test':test_idx}
+            split_indexes[repeat][fold] = {'Train':train_idx, 'Test':test_idx}
             fold += 1  
   return split_indexes
 
