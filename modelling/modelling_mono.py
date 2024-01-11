@@ -113,7 +113,9 @@ if os.path.exists(results_directory) is False:
   os.mkdir(results_directory)
   
 features = pd.read_pickle(os.path.join(data_directory, 'AllFeatures.p'))
-
+for p in features:
+  features[p] = list(features[p])
+  
 model_params = {}
 model_classes = {}
 return_coef = {}
