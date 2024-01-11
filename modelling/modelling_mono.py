@@ -169,7 +169,7 @@ for cv_type in ['RegularCV','CrossDataset']:
         os.mkdir(output_directory)
       args_for_cv = {'target':'Target', 'n_splits':5, 'score_function':corr_coeff_report, 'features':feature_list,
                    'transformation':False, 'plot_dir':output_directory, 'transformation_args':{}, 'model_params': model_params,
-                   'model_classes':model_classes, 'return_coef':return_coef, 'plot' : False}
+                   'model_classes':model_classes, 'return_coef':return_coef, 'plot' : False, 'baseline':feature_list[-1]}
       repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = '/mnt/bioadhoc/Users/erichard/cell_crushers/data/cv_folds')
       ds.data[feature_list].to_csv(os.path.join(output_directory,'dataset.tsv'),sep='\t')
       # for n_components in [10, 15, 30, 50, len(genes)]:
@@ -205,7 +205,7 @@ for cv_type in ['RegularCV','CrossDataset']:
         os.mkdir(output_directory)
       args_for_cv = {'target':'Target', 'n_splits':5, 'score_function':corr_coeff_report, 'features':feature_list,
                    'transformation':False, 'plot_dir':output_directory, 'transformation_args':{}, 'model_params': model_params,
-                   'model_classes':model_classes, 'return_coef':return_coef, 'plot' : False}
+                   'model_classes':model_classes, 'return_coef':return_coef, 'plot' : False, 'baseline':feature_list[-1]}
       repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = '/mnt/bioadhoc/Users/erichard/cell_crushers/data/cv_folds')
       ds.data[feature_list].to_csv(os.path.join(output_directory,'dataset.tsv'),sep='\t')
       for n_components in [10, 15, 30, len(feature_list)]:
