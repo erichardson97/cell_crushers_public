@@ -172,6 +172,7 @@ for cv_type in ['RegularCV','CrossDataset']:
         feature_list += features['cytokine']
       if use_cellfreq:
         feature_list +=  features['cell_freq']
+      feature_list = [p for p in feature_list if p not in features['demographic']]
       feature_list += features['demographic']
       ds.filter(feature_list, nan_policy = 'drop')
       output_directory = os.path.join(results_directory, f'Model_NoncorrelatedGenes_{threshold}_{cv_type}_{target}')
@@ -191,6 +192,7 @@ for cv_type in ['RegularCV','CrossDataset']:
         feature_list += features['cytokine']
       if use_cellfreq:
         feature_list +=  features['cell_freq']
+      feature_list = [p for p in feature_list if p not in features['demographic']]
       feature_list += features['demographic']
       ds.filter(feature_list, nan_policy = 'keep')
       output_directory = os.path.join(results_directory, f'Model_{gene_type}_{cv_type}_{target}')
