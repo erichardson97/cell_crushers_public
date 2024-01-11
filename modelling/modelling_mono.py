@@ -16,6 +16,7 @@ from sklearn.linear_model import Ridge, Lasso, LinearRegression
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 # from sklearn.cross_decomposition import PLSRegression
 from sklearn.decomposition import PCA
+from xgboost import XGBRegressor
 from glob import glob
 import argparse
 
@@ -128,6 +129,11 @@ for alpha in [.01, 0.05, 0.1, 1]:
   model_classes[f'Lasso_Residuals_{alpha}'] = residuals_model(Lasso)
   model_params[f'Ridge_Residuals_{alpha}'] = {'alpha':alpha}
   model_classes[f'Ridge_Residuals_{alpha}'] = residuals_model(Ridge)
+  model_classes[f'ElasticNet_Residuals_{alpha}'] = residuals_model(ElasticNet)
+  model_classes[f'ElasticNet_{alpha}'] = residuals_model(ElasticNet)
+  model_params[f'ElasticNet_Residuals_{alpha}'] = {'alpha':alpha}
+  model_params[f'ElasticNet_{alpha}'] = {'alpha':alpha}
+  
 model_params[f'Linear'] = {}
 model_classes[f'Linear'] = residuals_model(LinearRegression)
 for x in model_classes:
@@ -157,6 +163,37 @@ for params in ParameterGrid({'loss':['squared_error','absolute_error'], 'n_estim
     model_params[f'GradientBoost_Residuals_{max_feat}_{n_estimators}_{loss}_{subsample}'] = params
     return_coef[f'GradientBoost_Residuals_{max_feat}_{n_estimators}_{loss}_{subsample}'] = 'feature_importances_'
 
+for params in ParameterGrid({'eta':[0.1, 0.3, 0.5], 'max_depth':[0, 6, 12, 24], 'subsample':[0.8, 0.9, 1],
+                            'lambda':[1, 2, 4], 'objective':['reg:squarederror','rank:ndcg','rank:pairwise'],
+                              'n_estimators':[2, 5, 10, 15]}):
+  eta = params['eta']
+  max_depth = params['max_depth']
+  subsample = params['subsample']
+  lambdaval = params['lambda']         
+  loss = params['objective']
+  n_estimators = params['n_estimators']                                   
+  model_classes[f'XGBoost_{eta}_{max_depth}_{subsample}_L2_{lambdaval}_{n_estimators}_{loss}'] = XGBRegressor
+  model_params[f'XGBoost_{eta}_{max_depth}_{subsample}_L2_{lambdaval}_{n_estimators}_{loss}'] = params
+  model_classes[f'XGBoost_Residual_{eta}_{max_depth}_{subsample}_L2_{lambdaval}_{n_estimators}_{loss}'] = residuals_model(XGBRegressor)
+  model_params[f'XGBoost_Residual_{eta}_{max_depth}_{subsample}_L2_{lambdaval}_{n_estimators}_{loss}'] = params
+  return_coef[f'XGBoost_Residual_{eta}_{max_depth}_{subsample}_L2_{lambdaval}_{n_estimators}_{loss}'] = 'feature_importances_'
+  return_coef[f'XGBoost_{eta}_{max_depth}_{subsample}_L2_{lambdaval}_{n_estimators}_{loss}'] = 'feature_importances_'   
+                              
+for params in ParameterGrid({'eta':[0.1, 0.3, 0.5], 'max_depth':[0, 6, 12, 24], 'subsample':[0.8, 0.9, 1],
+                            'alpha':[1, 2, 4], 'objective':['reg:squarederror','rank:ndcg','rank:pairwise'],
+                              'n_estimators':[2, 5, 10, 15]}):
+  eta = params['eta']
+  max_depth = params['max_depth']
+  subsample = params['subsample']
+  lambdaval = params['alpha']
+  loss = params['objective']
+  n_estimators = params['n_estimators']                              
+  model_classes[f'XGBoost_{eta}_{max_depth}_{subsample}_L1_{lambdaval}'] = XGBRegressor
+  model_params[f'XGBoost_{eta}_{max_depth}_{subsample}_L1_{lambdaval}'] = params
+  model_classes[f'XGBoost_Residual_{eta}_{max_depth}_{subsample}_L1_{lambdaval}_{n_estimators}_{loss}'] = residuals_model(XGBRegressor)
+  model_params[f'XGBoost_Residual_{eta}_{max_depth}_{subsample}_L1_{lambdaval}_{n_estimators}_{loss}''] = params
+  return_coef[f'XGBoost_Residual_{eta}_{max_depth}_{subsample}_L1_{lambdaval}_{n_estimators}_{loss}'] = 'feature_importances_'
+  return_coef[f'XGBoost_{eta}_{max_depth}_{subsample}_L1_{lambdaval}_{n_estimators}_{loss}''] = 'feature_importances_'                  
 
 cv_split = '/mnt/bioadhoc/Users/erichard/cell_crushers/data/cv_folds'
 
