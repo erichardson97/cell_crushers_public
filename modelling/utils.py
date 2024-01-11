@@ -263,7 +263,7 @@ class CV():
 
 
   def regular_ol_cv(self, features: list, target: str, n_splits: int, plot_dir: str, score_function: Callable, model_classes: dict = {}, model_params: dict = {}, return_coef: bool | dict = False, normalize = True,
-                     plot: bool = True, transformation: bool | Callable = False, transformation_args: dict = {}, precomputed_split: bool = False, baseline: str = 'Titre_IgG_PT):
+                     plot: bool = True, transformation: bool | Callable = False, transformation_args: dict = {}, precomputed_split: bool = False, baseline: str = 'Titre_IgG_PT'):
     '''
     Regular CV with no stratification by year.
     '''
