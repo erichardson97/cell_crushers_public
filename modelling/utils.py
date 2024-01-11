@@ -117,6 +117,24 @@ class ReGainBootleg():
       data[pair] = data.apply(lambda x:x[pair.split(':')[0]]/x[pair.split(':')[1]] if x[pair.split(':')[1]] != 0 else x[pair.split(':')[0]], axis =1 )
     return data[self.features].values
 
+class FilterbyCV():
+  def __init__(self, n_components= 100):
+    self.n_genes = n_components
+      
+  def fit(self, X):
+    cv = X.T.mean(1)/X.T.var(1)
+    rank = np.argsort(cv)
+    indices = np.where(rank<self.n_genes)[0]
+    self.indices = indices
+    return self
+
+  def fit_transform(self, X):
+    self.fit(X)
+    return X[:, self.indices]
+      
+  def transform(self, X):
+    return X[:, self.indices]
+
 
 def corr_coeff_report(y_pred: list, y_true: list) -> float:
   '''
@@ -167,6 +185,7 @@ def make_plots(plot_dir, model_name, fold_idx, X, y, train_idx, test_idx, test_p
   axs[1].set_title(r'$\rho$'+f' {baseline_score:.2f}', fontweight = 'bold')
   plt.savefig(fname, dpi = 300)
   plt.close()
+    
 
 def reduce_dimensions(X: np.array, y: np.array, features: np.array, features_to_change: np.array, n_components: int, reducer, trained: bool = False, supervised: bool = True, interpretable: bool = False):
     feature_idxs = np.where(np.isin(features, features_to_change))[0]
