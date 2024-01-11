@@ -180,7 +180,7 @@ for cv_type in ['RegularCV','CrossDataset']:
       args_for_cv = {'target':'Target', 'n_splits':5, 'score_function':corr_coeff_report, 'features':feature_list,
                    'transformation':False, 'plot_dir':output_directory, 'transformation_args':{}, 'model_params': model_params,
                    'model_classes':model_classes, 'return_coef':return_coef, 'plot' : False, 'baseline':feature_list[-1]}
-      repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = '/mnt/bioadhoc/Users/erichard/cell_crushers/data/cv_folds')
+      repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = '/mnt/bioadhoc/Users/erichard/cell_crushers/ig_task/data/cv_split')
       ds.data[feature_list].to_csv(os.path.join(output_directory,'dataset.tsv'),sep='\t')
         
     for gene_type in ['genes', 'filtered_genes']:
@@ -199,7 +199,7 @@ for cv_type in ['RegularCV','CrossDataset']:
       args_for_cv = {'target':'Target', 'n_splits':5, 'score_function':corr_coeff_report, 'features':feature_list,
                    'transformation':False, 'plot_dir':output_directory, 'transformation_args':{}, 'model_params': model_params,
                    'model_classes':model_classes, 'return_coef':return_coef, 'plot' : False, 'baseline':feature_list[-1]}
-      repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = '/mnt/bioadhoc/Users/erichard/cell_crushers/data/cv_folds')
+      repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = '/mnt/bioadhoc/Users/erichard/cell_crushers/ig_task/data/cv_split')
       ds.data[feature_list].to_csv(os.path.join(output_directory,'dataset.tsv'),sep='\t')
       for n_components in [10, 15, 30, len(feature_list)]:
         if cv_type != "CrossDataset":
@@ -214,7 +214,7 @@ for cv_type in ['RegularCV','CrossDataset']:
         args_for_cv['transformation'] = reduce_dimensions
         args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(features[gene_type]),
                 'reducer':PCA, 'n_components':n_components}
-        repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = '/mnt/bioadhoc/Users/erichard/cell_crushers/data/cv_folds')
+        repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = '/mnt/bioadhoc/Users/erichard/cell_crushers/ig_task/data/cv_split')
         ds.data[feature_list].to_csv(os.path.join(output_directory,'dataset.tsv'),sep='\t')
         if cv_type != 'CrossDataset':
           if ((n_components >= len(feature_list)) & (n_components >= int(ds.data.shape[0]*0.8))): 
@@ -229,7 +229,7 @@ for cv_type in ['RegularCV','CrossDataset']:
         args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(feature_list),
                 'reducer':PCA, 'n_components':n_components}
         
-        repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = '/mnt/bioadhoc/Users/erichard/cell_crushers/data/cv_folds')
+        repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = '/mnt/bioadhoc/Users/erichard/cell_crushers/ig_task/data/cv_split')
         ds.data[feature_list].to_csv(os.path.join(output_directory,'dataset.tsv'),sep='\t')
       # for n_components in [10, 15, 30, 50, len(features[gene_type])]:
       #     if n_components >= len(features[gene_type]):
@@ -246,5 +246,5 @@ for cv_type in ['RegularCV','CrossDataset']:
       #     args_for_cv['transformation'] = reduce_dimensions
       #     args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(features[gene_type]),
       #             'reducer':ReGainBootleg, 'n_components':n_components}
-      #     repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = '/mnt/bioadhoc/Users/erichard/cell_crushers/data/cv_folds')
+      #     repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = '/mnt/bioadhoc/Users/erichard/cell_crushers/ig_task/data/cv_split')
       #     ds.data[feature_list].to_csv(os.path.join(output_directory,'dataset.tsv'),sep='\t')
