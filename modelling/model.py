@@ -27,7 +27,8 @@ def populate_cv_args(cv_name: str, model: str, baseline: str, cv_params: dict, m
   if 'precomputed_split' in cv_params:
     cv_args['precomputed_split'] = cv_params[cv_name]['precomputed_split']
   else:
-    cv_args['precomputed_split'] = False
+    if cv_params[cv_name]['cv_type'] != 'CrossDataset':
+      cv_args['precomputed_split'] = False
   cv_args['n_splits'] = cv_params[cv_name]['n_folds'] if 'n_folds' in cv_params[cv_name] else 5
   cv_args['score_function'] = corr_coeff_report
   cv_args['model_classes'] =  {model:model_dictionary[model]}
@@ -35,6 +36,7 @@ def populate_cv_args(cv_name: str, model: str, baseline: str, cv_params: dict, m
   cv_args['return_coef'] = {model:model_params['return']}
   cv_args['baseline'] = baseline
   cv_args['target'] = 'Target'
+  cv_args['plot'] = False
   cv_args['plot_dir'] = outpath
   return cv_args
   
