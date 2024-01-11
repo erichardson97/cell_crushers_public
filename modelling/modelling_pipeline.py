@@ -15,6 +15,15 @@ def check_model_file(model_file_path):
   if os.path.exists(file['data_path']) is False:
     sys.stderr.write('Data directory does not exist.')
     sys.exit(2)
+  elif os.path.exists(file['data_path']) is False:
+    sys.stderr.write('Data directory does not exist.')
+    sys.exit(2)
+  if os.path.exists(file['data_params']) is False:
+    sys.stderr.write('Data directory does not exist.')
+    sys.exit(2)
+  elif os.path.exists(file['data_params']) is False:
+    sys.stderr.write('Data directory does not exist.')
+    sys.exit(2)
   if 'cv_spec' not in file:
     sys.stderr.write(error_message)
     sys.exit(2)
@@ -51,6 +60,15 @@ if os.path.exists(args.model_args) is False:
 
 model_file = args.model_args
 file = check_model_file(model_file)
-for model in file['model_spec']:
-    run_model(model, model_params = file['model_spec'][model], features = file['feature_spec'], cv_spec = file['cv_spec'], transformation = file['transformation'])
+model_spec = yaml.safe_load(open(file['model_spec'], 'r'))
+data_params = yaml.safe_load(open(file['data_params'], 'r'))
+feature_spec = yaml.safe_load(open(file['feature_spec'], 'r'))
+cv_spec = yaml.safe_load(open(file['cv_spec'], 'r'))
+transformation_params = yaml.safe_load(open(file['transformation'], 'r'))
+
+for model in model_spec:
+    run_model(model, data_path = data_path, data_params = data_params,
+              model_params = model_spec[model], features = feature_spec, cv_spec = cv_spec, 
+              transformation = transformation_params)
+  
 
