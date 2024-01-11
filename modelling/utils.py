@@ -263,12 +263,12 @@ class CV():
 
 
   def regular_ol_cv(self, features: list, target: str, n_splits: int, plot_dir: str, score_function: Callable, model_classes: dict = {}, model_params: dict = {}, return_coef: bool | dict = False, normalize = True,
-                     plot: bool = True, transformation: bool | Callable = False, transformation_args: dict = {}, precomputed_split: bool = False):
+                     plot: bool = True, transformation: bool | Callable = False, transformation_args: dict = {}, precomputed_split: bool = False, baseline: str = 'Titre_IgG_PT'):
     '''
     Regular CV with no stratification by year.
     '''
     X = self.data[features].values
-    baseline = self.data['Titre_IgG_PT'].values
+    baseline = self.data[baseline].values
     y = self.data[target].values
 
     scores = {'Fold':[], 'Score':[], 'MSE':[], 'Baseline':[], 'Model':[]}
@@ -327,17 +327,17 @@ class CV():
     return scores, trained_models, coefficient_df
 
   
-  def cross_dataset_CV_Nested(self, features: list, target: str, n_splits: int, score_function: Callable, model_classes, model_params: dict = {}, return_coef = 'coef_'):
+  def cross_dataset_CV_Nested(self, features: list, target: str, n_splits: int, score_function: Callable, model_classes, model_params: dict = {}, return_coef = 'coef_', baseline: str = 'Titre_IgG_PT'):
     '''
     Nest CV i.e. train on 80% of 2020, test on 20% of 2021, etc.
     '''
   
     X_1 = self.data[self.data['dataset']=='2020_dataset'][features].values
     y_1 = self.data[self.data['dataset']=='2020_dataset'][target].values
-    X_1_baseline = self.data[self.data['dataset']=='2020_dataset']['Titre_IgG_PT'].values
+    X_1_baseline = self.data[self.data['dataset']=='2020_dataset'][baseline].values
     X_2 = self.data[self.data['dataset']=='2021_dataset'][features].values
     y_2 = self.data[self.data['dataset']=='2021_dataset'][target].values
-    X_2_baseline = self.data[self.data['dataset']=='2021_dataset']['Titre_IgG_PT'].values
+    X_2_baseline = self.data[self.data['dataset']=='2021_dataset'][baseline].values
     outer = 0
     scores = {'Score':[], 'Outer':[], 'Inner':[], 'Train_Year':[], 'Baseline':[]}
     trained_models = {}
@@ -383,15 +383,15 @@ class CV():
   
   
   def cross_dataset_CV(self, features: list, target: str, n_splits: int, plot_dir: str, score_function: Callable, model_classes: dict, model_params: dict = {}, return_coef = 'coef_',
-                      normalize: bool = True, plot: bool = True, transformation: bool | Callable = False, transformation_args: dict = {}):
+                      normalize: bool = True, plot: bool = True, transformation: bool | Callable = False, transformation_args: dict = {}, baseline: str = 'Titre_IgG_PT'):
     '''
     Train on 2020 and test on 2021 and vice versa.
     '''
     X_1 = self.data[self.data['dataset']=='2020_dataset'][features].values
-    baseline_X1 = self.data[self.data['dataset']=='2020_dataset']['Titre_IgG_PT']
+    baseline_X1 = self.data[self.data['dataset']=='2020_dataset'][baseline]
     y_1 = self.data[self.data['dataset']=='2020_dataset'][target].values
     X_2 = self.data[self.data['dataset']=='2021_dataset'][features].values
-    baseline_X2 = self.data[self.data['dataset']=='2021_dataset']['Titre_IgG_PT']
+    baseline_X2 = self.data[self.data['dataset']=='2021_dataset'][baseline]
     y_2 = self.data[self.data['dataset']=='2021_dataset'][target].values
     scores = {'Score':[], 'Train_Year':[], 'Test_Year':[], 'Baseline':[], 'Model':[]}
     trained_models = defaultdict(dict)

@@ -16,15 +16,17 @@ from sklearn.linear_model import Ridge, Lasso, LinearRegression
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 # from sklearn.cross_decomposition import PLSRegression
 from sklearn.decomposition import PCA
-from sklearn.mixture import GaussianMixture
 from glob import glob
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--data_directory', dest = 'data_directory')
+args = parser.parse_args()
 
 use_baseline = True
 use_olink = True
 use_cellfreq = True
 use_genes = True
-
-
 
 def calc_residuals_for_prediction(baseline, y):
   slope, intercept, r, p, se = linregress(baseline, y)
@@ -64,7 +66,7 @@ def residuals_model(base_class: sklearn.base.BaseEstimator):
   return ResidualModel
 
 def repeat_cv(data, candidate_features, args_for_cv, output_path, cv_type = 'RegularCV', cv_path: str = ''):
-  cvobj = CV_GMM(data[candidate_features+['Target', 'dataset', 'Cluster']])
+  cvobj = CV(data[candidate_features+['Target', 'dataset']])
   total = []
   coefs_ = []
   n_repeats = 10 if cv_type == 'RegularCV' else 1
@@ -86,37 +88,42 @@ def repeat_cv(data, candidate_features, args_for_cv, output_path, cv_type = 'Reg
   return total
   
 
-def train_test_split(X, y, n_splits = 5, repeats = 10, stratify = False):
+def train_test_split(X, y, n_splits = 5, repeats = 10):
   split_indexes = {}
   for repeat in range(repeats):
     fold = 0
     split_indexes[repeat] = {}
-    if type(stratify) == bool:
-      if stratify == True:
-        for train_idx, test_idx in KFold(n_splits = n_splits, shuffle = True).split(X, y):
-            split_indexes[repeat][fold] = {'Train':train_idx, 'Test':test_idx}
-            fold += 1  
-    else:
-        for train_idx, test_idx in StratifiedKFold(n_splits = n_splits, shuffle = True).split(X, stratify):
-            split_indexes[repeat][fold] = {'Train':train_idx, 'Test':test_idx}
-            fold += 1  
+    for train_idx, test_idx in KFold(n_splits = n_splits, shuffle = True).split(X, y):
+        split_indexes[repeat][fold] = {'Train':train_idx, 'Test':test_idx}
+        fold += 1  
   return split_indexes
 
 def load_data(path = '/content/drive/MyDrive/CMIPB_Files/IntegratedData.tsv', target = 'Day14_IgG_Titre', transform = True, keep = True):
   data = pd.read_csv(path, sep = '\t', index_col = 0)
-  if ('Target' in data) & (keep == False):
+  if ('Target' in data) & (target != 'Target'):
     del data['Target']
   data = data.rename(columns = {target: 'Target'})
-  data = data[(data['Target'].notna())&(data['Titre_IgG_PT'].notna())]
-  data['Target'] = data['Target'].map(np.log2)
-  data['Titre_IgG_PT'] = data['Titre_IgG_PT'].map(np.log2)
+  data = data[(data['Target'].notna())]
   ds = Dataset(data)
   return ds
-
+  
+data_directory = args.data_directory
+results_directory = '/'.join(data_directory.split('/')[:-1]) + '/results'
+if os.path.exists(results_directory) is False:
+  os.mkdir(results_directory)
+  
+features = pd.read_pickle(os.path.join(data_directory, 'AllFeatures.p'))
+for p in features:
+  features[p] = list(features[p])
+  
 model_params = {}
 model_classes = {}
 return_coef = {}
 for alpha in [.01, 0.05, 0.1, 1]:
+  model_params[f'Lasso_{alpha}'] = {'alpha':alpha}
+  model_classes[f'Lasso_{alpha}'] = Lasso
+  model_params[f'Ridge_{alpha}'] = {'alpha':alpha}
+  model_classes[f'Ridge_{alpha}'] = Ridge
   model_params[f'Lasso_Residuals_{alpha}'] = {'alpha':alpha}
   model_classes[f'Lasso_Residuals_{alpha}'] = residuals_model(Lasso)
   model_params[f'Ridge_Residuals_{alpha}'] = {'alpha':alpha}
@@ -129,39 +136,32 @@ for params in ParameterGrid({'max_features':[None, 'sqrt', 'log2'], 'n_estimator
   max_feat = params['max_features']
   n_estimators = params['n_estimators']
   model_params[f'RandomForest_{max_feat}_{n_estimators}'] = params
+  model_classes[f'RandomForest_{max_feat}_{n_estimators}'] = params
+  return_coef[f'RandomForest_{max_feat}_{n_estimators}'] = 'feature_importances_'
   model_params[f'RandomForest_Residuals_{max_feat}_{n_estimators}'] = params
   model_classes[f'RandomForest_{max_feat}_{n_estimators}'] = RandomForestRegressor
   model_classes[f'RandomForest_Residuals_{max_feat}_{n_estimators}'] = residuals_model(RandomForestRegressor)
   return_coef[f'RandomForest_Residuals_{max_feat}_{n_estimators}'] = 'feature_importances_'
   return_coef[f'RandomForest_{max_feat}_{n_estimators}'] = 'feature_importances_'
-
+  
 for params in ParameterGrid({'loss':['squared_error','absolute_error'], 'n_estimators':[100, 1000, 1000], 'subsample':[0.8,0.9,1],
                              'max_features':[None, 'sqrt', 'log2']}):
     max_feat = params['max_features']
     n_estimators = params['n_estimators']
     loss = params['loss']
-    subsample = params['subsample']                           
+    subsample = params['subsample']    
+    model_classes[f'GradientBoost_{max_feat}_{n_estimators}_{loss}_{subsample}'] = GradientBoostingRegressor
+    model_params[f'GradientBoost_{max_feat}_{n_estimators}_{loss}_{subsample}'] = params
+    return_coef[f'GradientBoost_{max_feat}_{n_estimators}_{loss}_{subsample}'] = 'feature_importances_'                           
     model_classes[f'GradientBoost_Residuals_{max_feat}_{n_estimators}_{loss}_{subsample}'] = residuals_model(GradientBoostingRegressor)
     model_params[f'GradientBoost_Residuals_{max_feat}_{n_estimators}_{loss}_{subsample}'] = params
     return_coef[f'GradientBoost_Residuals_{max_feat}_{n_estimators}_{loss}_{subsample}'] = 'feature_importances_'
 
-data_directory = '/mnt/bioadhoc/Users/erichard/cell_crushers/data/'
 
+cv_split = '/mnt/bioadhoc/Users/erichard/cell_crushers/data/cv_folds'
 
-
-results_directory = '/mnt/bioadhoc/Users/erichard/cell_crushers/results_gmm_subset'
-if os.path.exists(results_directory) is False:
-  os.mkdir(results_directory)
-
-features = pd.read_pickle(os.path.join(data_directory, 'AllFeatures.p'))
-
-target = 'Day14_IgG_Titre'
-cv_type = 'RegularCV'
-
-
-for cv_type in ['RegularCV']:
-  first_split = True
-  for target in ['Day14_IgG_Titre','Day14_IgG_FC']:
+for cv_type in ['RegularCV','CrossDataset']:
+  for target in ['Target', 'Target_FC']:
     for file in glob(os.path.join(data_directory, 'correlation_filtered', '*tsv')):
       threshold = file.split('/')[-1][19:].split('.tsv')[0]
       ds = load_data(file, target = target)
@@ -173,45 +173,17 @@ for cv_type in ['RegularCV']:
       if use_cellfreq:
         feature_list +=  features['cell_freq']
       feature_list += features['demographic']
-      ds.filter(feature_list)
-      ds.data['Cluster'] = GaussianMixture(n_components=2).fit_predict(ds.data['Titre_IgG_PT'].values.reshape(-1,1))
-      cv_split_path = os.path.join(results_directory, 'cv_splits')
-      if first_split:
-        train_test_split_indices = train_test_split(ds.data[feature_list], ds.data['Target'], stratify = ds.data['Cluster'].values)
-        if os.path.exists(cv_split_path) is False:
-          os.mkdir(cv_split_path)
-        for repeat in train_test_split_indices:
-          with open(os.path.join(cv_split_path, f'Repeat{repeat}_CV_Idx.p'), 'wb') as k:
-            pickle.dump(train_test_split_indices[repeat], k)
-        first_split = False
-      assert feature_list[-1] == 'Titre_IgG_PT'
+      ds.filter(feature_list, nan_policy = 'drop')
       output_directory = os.path.join(results_directory, f'Model_NoncorrelatedGenes_{threshold}_{cv_type}_{target}')
       if os.path.exists(output_directory) is False:
         os.mkdir(output_directory)
       args_for_cv = {'target':'Target', 'n_splits':5, 'score_function':corr_coeff_report, 'features':feature_list,
                    'transformation':False, 'plot_dir':output_directory, 'transformation_args':{}, 'model_params': model_params,
-                   'model_classes':model_classes, 'return_coef':return_coef, 'plot' : False, 'cluster':False}
-      repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = cv_split_path)
+                   'model_classes':model_classes, 'return_coef':return_coef, 'plot' : False, 'baseline':feature_list[-1]}
+      repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = '/mnt/bioadhoc/Users/erichard/cell_crushers/data/cv_folds')
       ds.data[feature_list].to_csv(os.path.join(output_directory,'dataset.tsv'),sep='\t')
-      for n_components in [10, 15, 30, 50, len(genes)]:
-        if n_components >= len(genes):
-          continue
-        if cv_type != 'CrossDataset':
-          if len(genes) >= int(ds.data.shape[0]*0.8):
-            continue
-        else:
-          if len(genes) >= ds.data['dataset'].value_counts().min():
-            continue
-        output_directory = os.path.join(results_directory, f'Model_NoncorrelatedGenes{threshold}_ReGain_{n_components}_{cv_type}_{target}')
-        if os.path.exists(output_directory) is False:
-          os.mkdir(output_directory)
-        args_for_cv['transformation'] = reduce_dimensions
-        args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(genes),
-                'reducer':ReGainBootleg, 'n_components':n_components}
-        repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = cv_split_path)
-        ds.data[feature_list].to_csv(os.path.join(output_directory,'dataset.tsv'),sep='\t')
         
-    for gene_type in ['all_genes', 'filtered_genes', 'literature_genes','literature_genes>1', 'GO_Genes']:
+    for gene_type in ['genes', 'filtered_genes']:
       ds = load_data(os.path.join(data_directory, "IntegratedData_Normalized.tsv"), target = target)
       ds.filter(['Titre_IgG_PT','Target'])
       feature_list = features[gene_type]
@@ -220,16 +192,14 @@ for cv_type in ['RegularCV']:
       if use_cellfreq:
         feature_list +=  features['cell_freq']
       feature_list += features['demographic']
-      assert feature_list[-1] == 'Titre_IgG_PT'
-      ds.filter(feature_list, nan_policy = 'drop')
-      ds.data['Cluster'] = GaussianMixture(n_components=2).fit_predict(ds.data['Titre_IgG_PT'].values.reshape(-1,1))
+      ds.filter(feature_list, nan_policy = 'keep')
       output_directory = os.path.join(results_directory, f'Model_{gene_type}_{cv_type}_{target}')
       if os.path.exists(output_directory) is False:
         os.mkdir(output_directory)
       args_for_cv = {'target':'Target', 'n_splits':5, 'score_function':corr_coeff_report, 'features':feature_list,
                    'transformation':False, 'plot_dir':output_directory, 'transformation_args':{}, 'model_params': model_params,
-                   'model_classes':model_classes, 'return_coef':return_coef, 'plot' : False, 'cluster':False}
-      repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = cv_split_path)
+                   'model_classes':model_classes, 'return_coef':return_coef, 'plot' : False, 'baseline':feature_list[-1]}
+      repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = '/mnt/bioadhoc/Users/erichard/cell_crushers/data/cv_folds')
       ds.data[feature_list].to_csv(os.path.join(output_directory,'dataset.tsv'),sep='\t')
       for n_components in [10, 15, 30, len(feature_list)]:
         if cv_type != "CrossDataset":
@@ -244,7 +214,7 @@ for cv_type in ['RegularCV']:
         args_for_cv['transformation'] = reduce_dimensions
         args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(features[gene_type]),
                 'reducer':PCA, 'n_components':n_components}
-        repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = cv_split_path)
+        repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = '/mnt/bioadhoc/Users/erichard/cell_crushers/data/cv_folds')
         ds.data[feature_list].to_csv(os.path.join(output_directory,'dataset.tsv'),sep='\t')
         if cv_type != 'CrossDataset':
           if ((n_components >= len(feature_list)) & (n_components >= int(ds.data.shape[0]*0.8))): 
@@ -259,22 +229,22 @@ for cv_type in ['RegularCV']:
         args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(feature_list),
                 'reducer':PCA, 'n_components':n_components}
         
-        repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = cv_split_path)
+        repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = '/mnt/bioadhoc/Users/erichard/cell_crushers/data/cv_folds')
         ds.data[feature_list].to_csv(os.path.join(output_directory,'dataset.tsv'),sep='\t')
-      for n_components in [10, 15, 30, 50, len(features[gene_type])]:
-          if n_components >= len(features[gene_type]):
-            continue
-          if cv_type != 'CrossDataset':
-            if len(features[gene_type]) >= int(ds.data.shape[0]*0.8):
-              continue
-          else:
-            if len(features[gene_type]) >= ds.data['dataset'].value_counts().min():
-              continue
-          output_directory = os.path.join(results_directory, f'Model_{gene_type}_ReGain_{n_components}_{cv_type}_{target}')
-          if os.path.exists(output_directory) is False:
-            os.mkdir(output_directory)
-          args_for_cv['transformation'] = reduce_dimensions
-          args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(features[gene_type]),
-                  'reducer':ReGainBootleg, 'n_components':n_components}
-          repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = cv_split_path)
-          ds.data[feature_list].to_csv(os.path.join(output_directory,'dataset.tsv'),sep='\t')
+      # for n_components in [10, 15, 30, 50, len(features[gene_type])]:
+      #     if n_components >= len(features[gene_type]):
+      #       continue
+      #     if cv_type != 'CrossDataset':
+      #       if len(features[gene_type]) >= int(ds.data.shape[0]*0.8):
+      #         continue
+      #     else:
+      #       if len(features[gene_type]) >= ds.data['dataset'].value_counts().min():
+      #         continue
+      #     output_directory = os.path.join(results_directory, f'Model_{gene_type}_ReGain_{n_components}_{cv_type}_{target}')
+      #     if os.path.exists(output_directory) is False:
+      #       os.mkdir(output_directory)
+      #     args_for_cv['transformation'] = reduce_dimensions
+      #     args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(features[gene_type]),
+      #             'reducer':ReGainBootleg, 'n_components':n_components}
+      #     repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = '/mnt/bioadhoc/Users/erichard/cell_crushers/data/cv_folds')
+      #     ds.data[feature_list].to_csv(os.path.join(output_directory,'dataset.tsv'),sep='\t')
