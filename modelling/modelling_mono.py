@@ -24,6 +24,9 @@ parser.add_argument('--data_directory', dest = 'data_directory')
 args = parser.parse_args()
 
 use_baseline = True
+use_olink = True
+use_cellfreq = True
+use_genes = True
 
 def calc_residuals_for_prediction(baseline, y):
   slope, intercept, r, p, se = linregress(baseline, y)
