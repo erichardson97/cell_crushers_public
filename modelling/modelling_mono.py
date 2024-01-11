@@ -17,6 +17,11 @@ from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 # from sklearn.cross_decomposition import PLSRegression
 from sklearn.decomposition import PCA
 from glob import glob
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--data_directory', dest = 'data_directory')
+args = parser.parse_args()
 
 use_baseline = True
 
@@ -99,8 +104,8 @@ def load_data(path = '/content/drive/MyDrive/CMIPB_Files/IntegratedData.tsv', ta
   ds = Dataset(data)
   return ds
   
-data_directory = '/mnt/bioadhoc/Users/erichard/cell_crushers/mono_task/data'
-results_directory = '/mnt/bioadhoc/Users/erichard/cell_crushers/mono_task/results'
+data_directory = args.data_directory
+results_directory = '/'.join(data_directory.split('/')[:-1]) + '/results'
 if os.path.exists(results_directory) is False:
   os.mkdir(results_directory)
   
@@ -127,7 +132,6 @@ for params in ParameterGrid({'max_features':[None, 'sqrt', 'log2'], 'n_estimator
   model_classes[f'RandomForest_Residuals_{max_feat}_{n_estimators}'] = residuals_model(RandomForestRegressor)
   return_coef[f'RandomForest_Residuals_{max_feat}_{n_estimators}'] = 'feature_importances_'
   return_coef[f'RandomForest_{max_feat}_{n_estimators}'] = 'feature_importances_'
-
 for params in ParameterGrid({'loss':['squared_error','absolute_error'], 'n_estimators':[100, 1000, 1000], 'subsample':[0.8,0.9,1],
                              'max_features':[None, 'sqrt', 'log2']}):
     max_feat = params['max_features']
