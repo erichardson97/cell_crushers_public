@@ -164,16 +164,6 @@ for cv_type in ['RegularCV','CrossDataset']:
         feature_list +=  features['cell_freq']
       feature_list += features['demographic']
       ds.filter(feature_list, nan_policy = 'drop')
-      # cv_split_path = os.path.join(results_directory, 'cv_splits')
-      # if first_split:
-      #   train_test_split_indices = train_test_split(ds.data[feature_list], ds.data['Target'])
-      #   if os.path.exists(cv_split_path) is False:
-      #     os.mkdir(cv_split_path)
-      #   for repeat in train_test_split_indices:
-      #     with open(os.path.join(cv_split_path, f'Repeat{repeat}_CV_Idx.p'), 'wb') as k:
-      #       pickle.dump(train_test_split_indices[repeat], k)
-      #   first_split = False
-      assert feature_list[-1] == 'Titre_IgG_PT'
       output_directory = os.path.join(results_directory, f'Model_NoncorrelatedGenes_{threshold}_{cv_type}_{target}')
       if os.path.exists(output_directory) is False:
         os.mkdir(output_directory)
@@ -209,7 +199,6 @@ for cv_type in ['RegularCV','CrossDataset']:
       if use_cellfreq:
         feature_list +=  features['cell_freq']
       feature_list += features['demographic']
-      assert feature_list[-1] == 'Titre_IgG_PT'
       ds.filter(feature_list, nan_policy = 'keep')
       output_directory = os.path.join(results_directory, f'Model_{gene_type}_{cv_type}_{target}')
       if os.path.exists(output_directory) is False:
