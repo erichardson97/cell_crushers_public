@@ -120,6 +120,10 @@ model_params = {}
 model_classes = {}
 return_coef = {}
 for alpha in [.01, 0.05, 0.1, 1]:
+  model_params[f'Lasso_{alpha}'] = {'alpha':alpha}
+  model_classes[f'Lasso_{alpha}'] = Lasso
+  model_params[f'Ridge_{alpha}'] = {'alpha':alpha}
+  model_classes[f'Ridge_{alpha}'] = Ridge
   model_params[f'Lasso_Residuals_{alpha}'] = {'alpha':alpha}
   model_classes[f'Lasso_Residuals_{alpha}'] = residuals_model(Lasso)
   model_params[f'Ridge_Residuals_{alpha}'] = {'alpha':alpha}
@@ -132,17 +136,23 @@ for params in ParameterGrid({'max_features':[None, 'sqrt', 'log2'], 'n_estimator
   max_feat = params['max_features']
   n_estimators = params['n_estimators']
   model_params[f'RandomForest_{max_feat}_{n_estimators}'] = params
+  model_classes[f'RandomForest_{max_feat}_{n_estimators}'] = params
+  return_coef[f'RandomForest_{max_feat}_{n_estimators}'] = 'feature_importances_'
   model_params[f'RandomForest_Residuals_{max_feat}_{n_estimators}'] = params
   model_classes[f'RandomForest_{max_feat}_{n_estimators}'] = RandomForestRegressor
   model_classes[f'RandomForest_Residuals_{max_feat}_{n_estimators}'] = residuals_model(RandomForestRegressor)
   return_coef[f'RandomForest_Residuals_{max_feat}_{n_estimators}'] = 'feature_importances_'
   return_coef[f'RandomForest_{max_feat}_{n_estimators}'] = 'feature_importances_'
+  
 for params in ParameterGrid({'loss':['squared_error','absolute_error'], 'n_estimators':[100, 1000, 1000], 'subsample':[0.8,0.9,1],
                              'max_features':[None, 'sqrt', 'log2']}):
     max_feat = params['max_features']
     n_estimators = params['n_estimators']
     loss = params['loss']
-    subsample = params['subsample']                           
+    subsample = params['subsample']    
+    model_classes[f'GradientBoost_{max_feat}_{n_estimators}_{loss}_{subsample}'] = GradientBoostingRegressor
+    model_params[f'GradientBoost_{max_feat}_{n_estimators}_{loss}_{subsample}'] = params
+    return_coef[f'GradientBoost_{max_feat}_{n_estimators}_{loss}_{subsample}'] = 'feature_importances_'                           
     model_classes[f'GradientBoost_Residuals_{max_feat}_{n_estimators}_{loss}_{subsample}'] = residuals_model(GradientBoostingRegressor)
     model_params[f'GradientBoost_Residuals_{max_feat}_{n_estimators}_{loss}_{subsample}'] = params
     return_coef[f'GradientBoost_Residuals_{max_feat}_{n_estimators}_{loss}_{subsample}'] = 'feature_importances_'
@@ -154,7 +164,7 @@ for cv_type in ['RegularCV','CrossDataset']:
   for target in ['Target', 'Target_FC']:
     for file in glob(os.path.join(data_directory, 'correlation_filtered', '*tsv')):
       threshold = file.split('/')[-1][19:].split('.tsv')[0]
-      ds = load_data(file, target = target, keep = True)
+      ds = load_data(file, target = target)
       ds.filter(['Titre_IgG_PT','Target'])
       genes = [p for p in ds.data if 'GEX' in p]
       feature_list = genes 
@@ -172,23 +182,6 @@ for cv_type in ['RegularCV','CrossDataset']:
                    'model_classes':model_classes, 'return_coef':return_coef, 'plot' : False, 'baseline':feature_list[-1]}
       repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = '/mnt/bioadhoc/Users/erichard/cell_crushers/data/cv_folds')
       ds.data[feature_list].to_csv(os.path.join(output_directory,'dataset.tsv'),sep='\t')
-      # for n_components in [10, 15, 30, 50, len(genes)]:
-      #   if n_components >= len(genes):
-      #     continue
-      #   if cv_type != 'CrossDataset':
-      #     if len(genes) >= int(ds.data.shape[0]*0.8):
-      #       continue
-      #   else:
-      #     if len(genes) >= ds.data['dataset'].value_counts().min():
-      #       continue
-      #   output_directory = os.path.join(results_directory, f'Model_NoncorrelatedGenes{threshold}_ReGain_{n_components}_{cv_type}_{target}')
-      #   if os.path.exists(output_directory) is False:
-      #     os.mkdir(output_directory)
-      #   args_for_cv['transformation'] = reduce_dimensions
-      #   args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(genes),
-      #           'reducer':ReGainBootleg, 'n_components':n_components}
-      #   repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = '/mnt/bioadhoc/Users/erichard/cell_crushers/data/cv_folds')
-      #   ds.data[feature_list].to_csv(os.path.join(output_directory,'dataset.tsv'),sep='\t')
         
     for gene_type in ['genes', 'filtered_genes']:
       ds = load_data(os.path.join(data_directory, "IntegratedData_Normalized.tsv"), target = target)
