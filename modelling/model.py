@@ -41,14 +41,14 @@ def populate_cv_args(cv_name: str, model: str, baseline: str, cv_params: dict, m
   return cv_args
   
 def run_model(model_name: str, data_dir: str, data_params: dict, model_params: dict, cv_params: dict, 
-          transformation_params: dict, feature_params: dict, outpath: str):
+          transformation_params: dict, feature_params: dict, outpath: str, target: str):
   if os.path.exists(outpath) is False:
     os.path.mkdir(outpath)
   model = model_params[model_name]['model_type']
   baseline = data_params['Baseline']
   filename = data_params['Filename']
   transformation = {p:eval(data_params['Transformation'][p]) for p in data_params['Transformation']}
-  ds = load_data(os.path.join(data_dir, filename), transformation = transformation)
+  ds = load_data(os.path.join(data_dir, filename), transformation = transformation, target = target)
   for cv_name in cv_params:
     cv_args = populate_cv_args(cv_name, model, baseline, cv_params, model_params[model_name], outpath)
     cv_type = cv_params[cv_name]['cv_type']
