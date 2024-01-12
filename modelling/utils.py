@@ -188,6 +188,8 @@ def make_plots(plot_dir, model_name, fold_idx, X, y, train_idx, test_idx, test_p
     
 
 def reduce_dimensions(X: np.array, y: np.array, features: np.array, features_to_change: np.array, n_components: int, reducer, trained: bool = False, supervised: bool = True, interpretable: bool = False):
+    features = np.array(features)
+    features_to_change = np.array(features_to_change)
     feature_idxs = np.where(np.isin(features, features_to_change))[0]
     features_to_keep = np.where(~np.isin(features, features_to_change))[0]
     if not trained:
