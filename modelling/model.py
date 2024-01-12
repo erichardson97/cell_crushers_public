@@ -43,7 +43,7 @@ def populate_cv_args(cv_name: str, model: str, baseline: str, cv_params: dict, m
 def run_model(model_name: str, data_dir: str, data_params: dict, model_params: dict, cv_params: dict, 
           transformation_params: dict, feature_params: dict, outpath: str, target: str):
   if os.path.exists(outpath) is False:
-    os.path.mkdir(outpath)
+    os.mkdir(outpath)
   model = model_params[model_name]['model_type']
   baseline = data_params['Baseline']
   filename = data_params['Filename']
