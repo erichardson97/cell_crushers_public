@@ -92,6 +92,8 @@ def run_model(model_name: str, data_dir: str, data_params: dict, model_params: d
             cv_args['precomputed_split'] = os.path.join(precomputed_split,f'Repeat{n}_CV_Idx.p')
           cv = CV(ds.data)
           scores, models, coefficients = cv.RunCV(cv_type = cv_type, cv_args = cv_args)
+          if type(scores) == None:
+            continue
           scores['Repeat'] = n
           coefficients['Repeat'] = n
           for file in glob('*warnings.txt'):
