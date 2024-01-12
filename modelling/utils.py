@@ -13,7 +13,7 @@ from matplotlib import pyplot as plt
 from sklearn.mixture import GaussianMixture
 import os
 import pickle
-
+import warnings
 
 class ScikitClass(Protocol):
     def fit(self, X, y, sample_weight=None): ...
