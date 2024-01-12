@@ -12,7 +12,7 @@ from utils import *
 from scipy.stats import linregress
 from scipy.stats import spearmanr, linregress
 from sklearn.model_selection import ParameterGrid, KFold
-from sklearn.linear_model import Ridge, Lasso, LinearRegression
+from sklearn.linear_model import Ridge, Lasso, LinearRegression, ElasticNet
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 # from sklearn.cross_decomposition import PLSRegression
 from sklearn.decomposition import PCA
@@ -191,9 +191,9 @@ for params in ParameterGrid({'eta':[0.1, 0.3, 0.5], 'max_depth':[0, 6, 12, 24], 
   model_classes[f'XGBoost_{eta}_{max_depth}_{subsample}_L1_{lambdaval}'] = XGBRegressor
   model_params[f'XGBoost_{eta}_{max_depth}_{subsample}_L1_{lambdaval}'] = params
   model_classes[f'XGBoost_Residual_{eta}_{max_depth}_{subsample}_L1_{lambdaval}_{n_estimators}_{loss}'] = residuals_model(XGBRegressor)
-  model_params[f'XGBoost_Residual_{eta}_{max_depth}_{subsample}_L1_{lambdaval}_{n_estimators}_{loss}''] = params
+  model_params[f'XGBoost_Residual_{eta}_{max_depth}_{subsample}_L1_{lambdaval}_{n_estimators}_{loss}'] = params
   return_coef[f'XGBoost_Residual_{eta}_{max_depth}_{subsample}_L1_{lambdaval}_{n_estimators}_{loss}'] = 'feature_importances_'
-  return_coef[f'XGBoost_{eta}_{max_depth}_{subsample}_L1_{lambdaval}_{n_estimators}_{loss}''] = 'feature_importances_'                  
+  return_coef[f'XGBoost_{eta}_{max_depth}_{subsample}_L1_{lambdaval}_{n_estimators}_{loss}'] = 'feature_importances_'                  
 
 cv_split = '/mnt/bioadhoc/Users/erichard/cell_crushers/data/cv_folds'
 
@@ -231,7 +231,7 @@ for cv_type in ['RegularCV','CrossDataset']:
         feature_list +=  features['cell_freq']
       feature_list = [p for p in feature_list if p not in features['demographic']]
       feature_list += features['demographic']
-      ds.filter(feature_list, nan_policy = 'keep')
+      ds.filter(feature_list, nan_policy = 'drop')
       output_directory = os.path.join(results_directory, f'Model_{gene_type}_{cv_type}_{target}')
       if os.path.exists(output_directory) is False:
         os.mkdir(output_directory)
