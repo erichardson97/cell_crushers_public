@@ -2,6 +2,7 @@ from utils import *
 from data_utils import *
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.linear_model import Lasso, Ridge, ElasticNet, LinearRegression
+from sklearn.decomposition import PCA
 import sys
 from glob import glob
 
@@ -11,7 +12,8 @@ model_dictionary = {'RandomForest':RandomForestRegressor, 'GradientBoost':Gradie
                     'LinearModel':LinearRegression, 'Ridge':Ridge, 'Lasso':Lasso, 'ElasticNet':ElasticNet}
 for r in ['RandomForest', 'LinearModel', 'GradientBoost', 'Ridge', 'Lasso', 'ElasticNet']:
   model_dictionary[f'{r}_Residuals'] = residuals_model(model_dictionary[r])
-  
+model_dictionary['PCA'] = PCA
+
 def load_data(path = '/content/drive/MyDrive/CMIPB_Files/IntegratedData.tsv', target = 'Target', transformation: dict = {'Target':np.log2, 'Titre_IgG_PT':np.log2}):
   data = pd.read_csv(path, sep = '\t', index_col = 0)
   if ('Target' in data) & (target != 'Target'):
@@ -69,6 +71,8 @@ def run_model(model_name: str, data_dir: str, data_params: dict, model_params: d
         cv_args['transformation_args']['features'] = feature_list
         if len(transformation_args['features_to_change']) == 0:
           cv_args['transformation_args']['features_to_change'] = feature_list
+        if 'reducer' in transformation_args:
+          cv_args['transformation_args']['reducer'] = model_dict[transformation_args['reducer']]
         cv_args['transformation'] = transformation_func
         run_name = '_'.join([model_name, feature_name, transformation_name])
         output_dir = os.path.join(outpath, run_name)
