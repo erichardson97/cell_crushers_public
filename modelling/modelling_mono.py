@@ -163,42 +163,44 @@ for params in ParameterGrid({'loss':['squared_error','absolute_error'], 'n_estim
     model_params[f'GradientBoost_Residuals_{max_feat}_{n_estimators}_{loss}_{subsample}'] = params
     return_coef[f'GradientBoost_Residuals_{max_feat}_{n_estimators}_{loss}_{subsample}'] = 'feature_importances_'
 
-for params in ParameterGrid({'eta':[0.1, 0.3, 0.5], 'max_depth':[0, 6, 12, 24], 'subsample':[0.8, 0.9, 1],
-                            'lambda':[1, 2, 4], 'objective':['reg:squarederror','rank:ndcg','rank:pairwise'],
-                              'n_estimators':[2, 5, 10, 15]}):
-  eta = params['eta']
-  max_depth = params['max_depth']
-  subsample = params['subsample']
-  lambdaval = params['lambda']         
-  loss = params['objective']
-  n_estimators = params['n_estimators']                                   
-  model_classes[f'XGBoost_{eta}_{max_depth}_{subsample}_L2_{lambdaval}_{n_estimators}_{loss}'] = XGBRegressor
-  model_params[f'XGBoost_{eta}_{max_depth}_{subsample}_L2_{lambdaval}_{n_estimators}_{loss}'] = params
-  model_classes[f'XGBoost_Residual_{eta}_{max_depth}_{subsample}_L2_{lambdaval}_{n_estimators}_{loss}'] = residuals_model(XGBRegressor)
-  model_params[f'XGBoost_Residual_{eta}_{max_depth}_{subsample}_L2_{lambdaval}_{n_estimators}_{loss}'] = params
-  return_coef[f'XGBoost_Residual_{eta}_{max_depth}_{subsample}_L2_{lambdaval}_{n_estimators}_{loss}'] = 'feature_importances_'
-  return_coef[f'XGBoost_{eta}_{max_depth}_{subsample}_L2_{lambdaval}_{n_estimators}_{loss}'] = 'feature_importances_'   
+# for params in ParameterGrid({'eta':[0.1, 0.3, 0.5], 'max_depth':[0, 6, 12, 24], 'subsample':[0.8, 0.9, 1],
+#                             'lambda':[1, 2, 4], 'objective':['reg:squarederror','rank:ndcg','rank:pairwise'],
+#                               'n_estimators':[2, 5, 10, 15]}):
+#   eta = params['eta']
+#   max_depth = params['max_depth']
+#   subsample = params['subsample']
+#   lambdaval = params['lambda']         
+#   loss = params['objective']
+#   n_estimators = params['n_estimators']                                   
+#   model_classes[f'XGBoost_{eta}_{max_depth}_{subsample}_L2_{lambdaval}_{n_estimators}_{loss}'] = XGBRegressor
+#   model_params[f'XGBoost_{eta}_{max_depth}_{subsample}_L2_{lambdaval}_{n_estimators}_{loss}'] = params
+#   model_classes[f'XGBoost_Residual_{eta}_{max_depth}_{subsample}_L2_{lambdaval}_{n_estimators}_{loss}'] = residuals_model(XGBRegressor)
+#   model_params[f'XGBoost_Residual_{eta}_{max_depth}_{subsample}_L2_{lambdaval}_{n_estimators}_{loss}'] = params
+#   return_coef[f'XGBoost_Residual_{eta}_{max_depth}_{subsample}_L2_{lambdaval}_{n_estimators}_{loss}'] = 'feature_importances_'
+#   return_coef[f'XGBoost_{eta}_{max_depth}_{subsample}_L2_{lambdaval}_{n_estimators}_{loss}'] = 'feature_importances_'   
                               
-for params in ParameterGrid({'eta':[0.1, 0.3, 0.5], 'max_depth':[0, 6, 12, 24], 'subsample':[0.8, 0.9, 1],
-                            'alpha':[1, 2, 4], 'objective':['reg:squarederror','rank:ndcg','rank:pairwise'],
-                              'n_estimators':[2, 5, 10, 15]}):
-  eta = params['eta']
-  max_depth = params['max_depth']
-  subsample = params['subsample']
-  lambdaval = params['alpha']
-  loss = params['objective']
-  n_estimators = params['n_estimators']                              
-  model_classes[f'XGBoost_{eta}_{max_depth}_{subsample}_L1_{lambdaval}'] = XGBRegressor
-  model_params[f'XGBoost_{eta}_{max_depth}_{subsample}_L1_{lambdaval}'] = params
-  model_classes[f'XGBoost_Residual_{eta}_{max_depth}_{subsample}_L1_{lambdaval}_{n_estimators}_{loss}'] = residuals_model(XGBRegressor)
-  model_params[f'XGBoost_Residual_{eta}_{max_depth}_{subsample}_L1_{lambdaval}_{n_estimators}_{loss}'] = params
-  return_coef[f'XGBoost_Residual_{eta}_{max_depth}_{subsample}_L1_{lambdaval}_{n_estimators}_{loss}'] = 'feature_importances_'
-  return_coef[f'XGBoost_{eta}_{max_depth}_{subsample}_L1_{lambdaval}_{n_estimators}_{loss}'] = 'feature_importances_'                  
+# for params in ParameterGrid({'eta':[0.1, 0.3, 0.5], 'max_depth':[0, 6, 12, 24], 'subsample':[0.8, 0.9, 1],
+#                             'alpha':[1, 2, 4], 'objective':['reg:squarederror','rank:ndcg','rank:pairwise'],
+#                               'n_estimators':[2, 5, 10, 15]}):
+#   eta = params['eta']
+#   max_depth = params['max_depth']
+#   subsample = params['subsample']
+#   lambdaval = params['alpha']
+#   loss = params['objective']
+#   n_estimators = params['n_estimators']                              
+#   model_classes[f'XGBoost_{eta}_{max_depth}_{subsample}_L1_{lambdaval}'] = XGBRegressor
+#   model_params[f'XGBoost_{eta}_{max_depth}_{subsample}_L1_{lambdaval}'] = params
+#   model_classes[f'XGBoost_Residual_{eta}_{max_depth}_{subsample}_L1_{lambdaval}_{n_estimators}_{loss}'] = residuals_model(XGBRegressor)
+#   model_params[f'XGBoost_Residual_{eta}_{max_depth}_{subsample}_L1_{lambdaval}_{n_estimators}_{loss}'] = params
+#   return_coef[f'XGBoost_Residual_{eta}_{max_depth}_{subsample}_L1_{lambdaval}_{n_estimators}_{loss}'] = 'feature_importances_'
+#   return_coef[f'XGBoost_{eta}_{max_depth}_{subsample}_L1_{lambdaval}_{n_estimators}_{loss}'] = 'feature_importances_'                  
 
 cv_split = '/mnt/bioadhoc/Users/erichard/cell_crushers/data/cv_folds'
+overwrite = False
 
 for cv_type in ['RegularCV','CrossDataset']:
   for target in ['Target', 'Target_FC']:
+    overwrite = False
     for file in glob(os.path.join(data_directory, 'correlation_filtered', '*tsv')):
       threshold = file.split('/')[-1][19:].split('.tsv')[0]
       ds = load_data(file, target = target)
@@ -215,12 +217,15 @@ for cv_type in ['RegularCV','CrossDataset']:
       output_directory = os.path.join(results_directory, f'Model_NoncorrelatedGenes_{threshold}_{cv_type}_{target}')
       if os.path.exists(output_directory) is False:
         os.mkdir(output_directory)
+      else:
+        if overwrite is False:
+          continue
       args_for_cv = {'target':'Target', 'n_splits':5, 'score_function':corr_coeff_report, 'features':feature_list,
                    'transformation':False, 'plot_dir':output_directory, 'transformation_args':{}, 'model_params': model_params,
                    'model_classes':model_classes, 'return_coef':return_coef, 'plot' : False, 'baseline':feature_list[-1]}
       repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = '/mnt/bioadhoc/Users/erichard/cell_crushers/ig_task/data/cv_split')
       ds.data[feature_list].to_csv(os.path.join(output_directory,'dataset.tsv'),sep='\t')
-        
+    overwrite = True
     for gene_type in ['genes', 'filtered_genes']:
       ds = load_data(os.path.join(data_directory, "IntegratedData_Normalized.tsv"), target = target)
       ds.filter(['Titre_IgG_PT','Target'])
@@ -250,11 +255,14 @@ for cv_type in ['RegularCV','CrossDataset']:
         output_directory = os.path.join(results_directory, f'Model_{gene_type}_PCGenes_{n_components}_{cv_type}_{target}')
         if os.path.exists(output_directory) is False:
           os.mkdir(output_directory)
-        args_for_cv['transformation'] = reduce_dimensions
-        args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(features[gene_type]),
-                'reducer':PCA, 'n_components':n_components}
-        repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = '/mnt/bioadhoc/Users/erichard/cell_crushers/ig_task/data/cv_split')
-        ds.data[feature_list].to_csv(os.path.join(output_directory,'dataset.tsv'),sep='\t')
+        if overwrite is False:
+          pass
+        else:
+          args_for_cv['transformation'] = reduce_dimensions
+          args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(features[gene_type]),
+                  'reducer':PCA, 'n_components':n_components}
+          repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = '/mnt/bioadhoc/Users/erichard/cell_crushers/ig_task/data/cv_split')
+          ds.data[feature_list].to_csv(os.path.join(output_directory,'dataset.tsv'),sep='\t')
         if cv_type != 'CrossDataset':
           if ((n_components >= len(feature_list)) & (n_components >= int(ds.data.shape[0]*0.8))): 
             continue
@@ -262,14 +270,17 @@ for cv_type in ['RegularCV','CrossDataset']:
           if ((n_components >= len(feature_list)) | (n_components >= ds.data['dataset'].value_counts().min())):
             continue
         output_directory = os.path.join(results_directory, f'Model_{gene_type}_PCTotal_{n_components}_{cv_type}_{target}')
+        if overwrite is False:
+          pass
+        else:
         if os.path.exists(output_directory) is False:
           os.mkdir(output_directory)
-        args_for_cv['transformation'] = reduce_dimensions
-        args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(feature_list),
-                'reducer':PCA, 'n_components':n_components}
-        
-        repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = '/mnt/bioadhoc/Users/erichard/cell_crushers/ig_task/data/cv_split')
-        ds.data[feature_list].to_csv(os.path.join(output_directory,'dataset.tsv'),sep='\t')
+          args_for_cv['transformation'] = reduce_dimensions
+          args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(feature_list),
+                  'reducer':PCA, 'n_components':n_components}
+          
+          repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = '/mnt/bioadhoc/Users/erichard/cell_crushers/ig_task/data/cv_split')
+          ds.data[feature_list].to_csv(os.path.join(output_directory,'dataset.tsv'),sep='\t')
       # for n_components in [10, 15, 30, 50, len(features[gene_type])]:
       #     if n_components >= len(features[gene_type]):
       #       continue
