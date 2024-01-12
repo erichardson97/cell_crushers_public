@@ -50,7 +50,7 @@ def check_model_file(model_file_path):
   return file
   
 parser = argparse.ArgumentParser()
-parser.add_argument('--model_args', dest = 'model_args', description = 'YAML file containign model arguments.')
+parser.add_argument('--model_args', dest = 'model_args', help = 'YAML file containign model arguments.')
 args = parser.parse_args()
 if os.path.exists(args.model_args) is False:
   sys.stderr.write('Please supply the model file.')
