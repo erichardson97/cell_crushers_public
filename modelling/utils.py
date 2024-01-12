@@ -246,7 +246,8 @@ class CV():
   
   def __init__(self, data: pd.DataFrame):
     self.data = data
-
+    self.categorical_features = ['biological_sex', 'infancy_vac']
+      
   def RunCV(self, cv_type: str, cv_args: dict):
     if cv_type == 'LOOCV':
       return self.loocv(**cv_args)
@@ -280,7 +281,14 @@ class CV():
     scores = pd.DataFrame(scores)
     return scores, trained_models
 
-
+  def batch_normalize(self, train_X, train_y, test_X, test_y, features):
+    normalize = np.where(~np.isin(features, self.categorical_features))[0]
+    train_X[:,normalize] = StandardScaler().fit_transform(train_X[:,normalize])
+    train_y = StandardScaler().fit_transform(train_y.reshape(-1,1)).ravel()
+    test_X[:,normalize] = StandardScaler().fit_transform(test_X[:,normalize])
+    test_y = StandardScaler().fit_transform(test_y.reshape(-1,1)).ravel()  
+    return train_X, train_y, test_X, test_y
+    
   def regular_ol_cv(self, features: list, target: str, n_splits: int, plot_dir: str, score_function: Callable, model_classes: dict = {}, model_params: dict = {}, return_coef: bool | dict = False, normalize = True,
                      plot: bool = True, transformation: bool | Callable = False, transformation_args: dict = {}, precomputed_split: bool = False, baseline: str = 'Titre_IgG_PT'):
     '''
@@ -309,20 +317,23 @@ class CV():
         train_X, train_y = X[train_idx], y[train_idx]
         test_X, test_y = X[test_idx], y[test_idx]
         if normalize:
-            train_X = StandardScaler().fit_transform(train_X)
-            train_y = StandardScaler().fit_transform(train_y.reshape(-1,1)).ravel()
-            test_X = StandardScaler().fit_transform(test_X)
-            test_y = StandardScaler().fit_transform(test_y.reshape(-1,1)).ravel()
+            train_X, train_y, test_X, test_y = self.batch_normalize(train_X, train_y, test_X, test_y, features)
         if transformation:
             assert train_X.shape[1] == test_X.shape[1]
             train_X, transformer, new_feature_order =  transformation(train_X, train_y, **transformation_args)
             test_X, _, _ = transformation(test_X, test_y, reducer = transformer, n_components = transformation_args['n_components'],
                                features = transformation_args['features'], features_to_change = transformation_args['features_to_change'], trained = True)
             feature_order[fold] = new_feature_order
+        with open(f'fold{fold}_warnings.txt', 'w') as k:
+            k.write(f'Fold {fold} warnings...\n')
         for model_name in model_classes:
             model_class = model_classes[model_name]
             model = model_class(**model_params[model_name])
-            model.fit(train_X, train_y)
+            with warnings.catch_warnings(record=True) as captured_warnings:
+                model.fit(train_X, train_y)
+            with open(f'fold{fold}_warnings.txt', 'a') as k:
+                for warning in captured_warnings:
+                    k.write(f"{model_name}: {warning.message}\n")
             assert test_X.shape[1] == train_X.shape[1]
             val = model.predict(test_X)
             score = score_function(test_y, val)
@@ -338,8 +349,21 @@ class CV():
     scores = pd.DataFrame(scores)
     if return_coef:
         if not transformation:
+            for fold in trained_models:
+                for model in trained_models[fold]:
+                    if model in return_coef:
+                        values = return_property(trained_models[fold][model], return_coef[model])
+                        
+                        if len(values) != len(features):
+                            return scores, trained_models, pd.DataFrame([])
             coefficient_df = pd.concat([pd.DataFrame(dict((p, dict((features[m], y) for m,y in enumerate(return_property(trained_models[x][p], return_coef[p])))) for p in trained_models[x] if p in return_coef)).T.assign(Fold=x) for x in trained_models])
         else:
+            for fold in trained_models:
+                for model in trained_models[fold]:
+                    if model in return_coef:
+                        values = return_property(trained_models[fold][model], return_coef[model])
+                        if len(values) > len(feature_order[fold][model]):
+                            return scores, trained_models, pd.DataFrame([])
             coefficient_df = pd.concat([pd.DataFrame(dict((p, dict((feature_order[x][m], y) for m,y in enumerate(return_property(trained_models[x][p], return_coef[p])))) for p in trained_models[x] if p in return_coef)).T.assign(Fold=x) for x in trained_models])
     else:
         coefficient_df = None
@@ -415,23 +439,26 @@ class CV():
     scores = {'Score':[], 'Train_Year':[], 'Test_Year':[], 'Baseline':[], 'Model':[]}
     trained_models = defaultdict(dict)
     feature_order = defaultdict(dict)
-    train_X, train_y = X_1, y_1
-    test_X, test_y = X_2, y_2
+    train_X, train_y = X_1.copy(), y_1.copy()
+    test_X, test_y = X_2.copy(), y_2.copy()
     if normalize:
-        train_X = StandardScaler().fit_transform(train_X)
-        train_y = StandardScaler().fit_transform(train_y.reshape(-1,1)).ravel()
-        test_X = StandardScaler().fit_transform(test_X)
-        test_y = StandardScaler().fit_transform(test_y.reshape(-1, 1)).ravel()
+        train_X, train_y, test_X, test_y = self.batch_normalize(train_X, train_y, test_X, test_y, features)
     if transformation:
         assert train_X.shape[1] == test_X.shape[1]
         train_X, transformer, new_feature_order =  transformation(train_X, train_y, **transformation_args)
         test_X, _, _ = transformation(test_X, test_y, reducer = transformer, n_components = transformation_args['n_components'],
                                features = transformation_args['features'], features_to_change = transformation_args['features_to_change'], trained = True)
         feature_order['Train2020_Test2021'] = new_feature_order
+    with open(f'fold2020_2021_warnings.txt', 'w') as k:
+            k.write(f'Train2020_Test2021 warnings...\n')
     for model_name in model_classes:
         model_class = model_classes[model_name]
         model = model_class(**model_params[model_name])
-        model.fit(train_X, train_y)
+        with warnings.catch_warnings(record=True) as captured_warnings:
+                model.fit(train_X, train_y)
+        with open(f'fold2020_2021_warnings.txt', 'a') as k:
+                for warning in captured_warnings:
+                    k.write(f"{model_name}: {warning.message}\n")
         trained_models['Train2020_Test2021'][model_name] = model
         val = model.predict(test_X)
         score = score_function(val, test_y)
@@ -441,18 +468,24 @@ class CV():
         scores['Test_Year'].append(2021)
         scores['Baseline'].append(baseline_score)
         scores['Model'].append(model_name)
-    train_X, train_y = X_2, y_2
-    test_X, test_y = X_1, y_1
+    train_X, train_y = X_2.copy(), y_2.copy()
+    test_X, test_y = X_1.copy(), y_1.copy()
     if transformation:
         assert train_X.shape[1] == test_X.shape[1]
         train_X, transformer, new_feature_order =  transformation(train_X, train_y, **transformation_args)
         test_X, _, _ = transformation(test_X, test_y, reducer = transformer, n_components = transformation_args['n_components'],
                                features = transformation_args['features'], features_to_change = transformation_args['features_to_change'], trained = True)
         feature_order['Train2021_Test2020'] = new_feature_order
+    with open(f'fold2021_2020_warnings.txt', 'w') as k:
+            k.write(f'Train2020_Test2021 warnings...\n')
     for model_name in model_classes:
         model_class = model_classes[model_name]
         model = model_class(**model_params[model_name])
-        model.fit(train_X, train_y)
+        with warnings.catch_warnings(record=True) as captured_warnings:
+                model.fit(train_X, train_y)
+        with open(f'fold2021_2020_warnings.txt', 'a') as k:
+                for warning in captured_warnings:
+                    k.write(f"{model_name}: {warning.message}\n")
         trained_models['Train2021_Test2020'][model_name] = model
         val = model.predict(test_X)
         score = score_function(val, test_y)
