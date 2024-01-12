@@ -86,7 +86,9 @@ def run_model(model_name: str, data_dir: str, data_params: dict, model_params: d
           cv = CV(ds.data)
           scores, models, coefficients = cv.RunCV(cv_type = cv_type, cv_args = cv_args)
           scores['Repeat'] = n
-          scores['Coefficients'] = n
+          coefficients['Repeat'] = n
+          for file in glob('*warnings.txt'):
+            os.rename(file, os.path.join(output_dir, f'Repeat{n}_{file}'))
           scores.to_csv(os.path.join(output_dir, f'Repeat{n}.csv'))
           coefficients.to_csv(os.path.join(output_dir,f'FeatImportance{n}.csv'))
           with open(os.path.join(output_dir, "TrainedModels.p"), 'wb') as k:
