@@ -74,7 +74,7 @@ def run_model(model_name: str, data_dir: str, data_params: dict, model_params: d
         if 'reducer' in transformation_args:
           cv_args['transformation_args']['reducer'] = model_dict[transformation_args['reducer']]
         cv_args['transformation'] = transformation_func
-        run_name = '_'.join([model_name, feature_name, transformation_name])
+        run_name = '_'.join([model_name, feature_name, transformation_name, cv_type])
         output_dir = os.path.join(outpath, run_name)
         if transformation_func != False:
           if transformation_args['n_components'] >= int(ds.data.shape[0]*0.8):
