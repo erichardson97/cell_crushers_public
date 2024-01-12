@@ -450,6 +450,8 @@ class CV():
         train_X, train_y, test_X, test_y = self.batch_normalize(train_X, train_y, test_X, test_y, features)
     if transformation:
         assert train_X.shape[1] == test_X.shape[1]
+        if transformation_args['n_components'] >= min([train_X.shape[0], len(transformation_args['features_to_change'])]):
+                return None, None, None
         train_X, transformer, new_feature_order =  transformation(train_X, train_y, **transformation_args)
         test_X, _, _ = transformation(test_X, test_y, reducer = transformer, n_components = transformation_args['n_components'],
                                features = transformation_args['features'], features_to_change = transformation_args['features_to_change'], trained = True)
@@ -476,6 +478,8 @@ class CV():
     test_X, test_y = X_1.copy(), y_1.copy()
     if transformation:
         assert train_X.shape[1] == test_X.shape[1]
+        if transformation_args['n_components'] >= min([train_X.shape[0], len(transformation_args['features_to_change'])]):
+                return None, None, None
         train_X, transformer, new_feature_order =  transformation(train_X, train_y, **transformation_args)
         test_X, _, _ = transformation(test_X, test_y, reducer = transformer, n_components = transformation_args['n_components'],
                                features = transformation_args['features'], features_to_change = transformation_args['features_to_change'], trained = True)
