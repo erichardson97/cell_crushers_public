@@ -84,6 +84,8 @@ def repeat_cv(data, candidate_features, args_for_cv, output_path, cv_type = 'Reg
     coefs_.append(coefs)
     output.to_csv(os.path.join(args_for_cv['plot_dir'], f'Performance{f}.csv'))
     coefs.to_csv(os.path.join(args_for_cv['plot_dir'], f'FeatureImportance{f}.csv'))
+    for warningf in glob('*warnings.txt'):
+      os.rename(warningf, os.path.join(args_for_cv['plot_dir'], f'Warnings{f}_{warningf}'))
   total = pd.concat(total)
   total.to_csv(os.path.join(output_path, f'PerformanceTotal.csv'))
   return total
