@@ -71,7 +71,7 @@ def run_model(model_name: str, data_dir: str, data_params: dict, model_params: d
         cv_args['transformation_args']['features'] = feature_list
         if len(transformation_args['features_to_change']) == 0:
           cv_args['transformation_args']['features_to_change'] = feature_list
-        if type(transformation_args['feature_to_change']) != list:
+        if type(transformation_args['features_to_change']) != list:
           cv_args['transformation_args']['features_to_change'] = eval(transformation_args['features_to_change'])
         if 'reducer' in transformation_args:
           cv_args['transformation_args']['reducer'] = model_dict[transformation_args['reducer']]
