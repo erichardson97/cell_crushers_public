@@ -333,7 +333,7 @@ class CV():
             with warnings.catch_warnings(record=True) as captured_warnings:
                 model.fit(train_X, train_y)
             for warning in captured_warnings:
-                warning_dictionary[fold][model_name] += warning.message+'\n'
+                warning_dictionary[fold][model_name] += str(warning.message)+'\n'
             assert test_X.shape[1] == train_X.shape[1]
             val = model.predict(test_X)
             score = score_function(test_y, val)
@@ -458,7 +458,7 @@ class CV():
         with warnings.catch_warnings(record=True) as captured_warnings:
             model.fit(train_X, train_y)
         for warning in captured_warnings:
-            warning_dictionary[2020] += warning.message+'\n'
+            warning_dictionary[2020] += str(warning.message)+'\n'
         trained_models['Train2020_Test2021'][model_name] = model
         val = model.predict(test_X)
         score = score_function(val, test_y)
@@ -483,7 +483,7 @@ class CV():
         with warnings.catch_warnings(record=True) as captured_warnings:
             model.fit(train_X, train_y)
         for warning in captured_warnings:
-            warning_dictionary[2021][model_name] += warning.message+'\n'
+            warning_dictionary[2021][model_name] += str(warning.message)+'\n'
         trained_models['Train2021_Test2020'][model_name] = model
         val = model.predict(test_X)
         score = score_function(val, test_y)
