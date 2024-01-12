@@ -67,6 +67,8 @@ def run_model(model_name: str, data_dir: str, data_params: dict, model_params: d
       for transformation_name in transformation_params:
         transformation_args = transformation_params[transformation_name]['transformation_args']
         transformation_func = False if transformation_params[transformation_name]['transformation_func'] == False else eval(transformation_params[transformation_name]['transformation_func'])
+        if 'reducer' in transformation_args:
+          reducer = model_dictionary[transformation_args['reducer']]
         cv_args['transformation_args'] = transformation_args
         cv_args['transformation_args']['features'] = feature_list
         if len(transformation_args['features_to_change']) == 0:
@@ -74,7 +76,7 @@ def run_model(model_name: str, data_dir: str, data_params: dict, model_params: d
         if type(transformation_args['features_to_change']) != list:
           cv_args['transformation_args']['features_to_change'] = eval(transformation_args['features_to_change'])
         if 'reducer' in transformation_args:
-          cv_args['transformation_args']['reducer'] = transformation_args['reducer']
+          cv_args['transformation_args']['reducer'] = reducer
         cv_args['transformation'] = transformation_func
         run_name = '_'.join([model_name, feature_name, transformation_name, cv_type])
         output_dir = os.path.join(outpath, run_name)
