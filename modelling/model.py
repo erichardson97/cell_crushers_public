@@ -9,7 +9,7 @@ import sys
 model_dictionary = {'RandomForest':RandomForestRegressor, 'GradientBoost':GradientBoostingRegressor,
                     'LinearModel':LinearRegression, 'Ridge':Ridge, 'Lasso':Lasso, 'ElasticNet':ElasticNet}
 for r in ['RandomForest', 'LinearModel', 'GradientBoost', 'Ridge', 'Lasso', 'ElasticNet']:
-  model_dictionary[f'{r}_Residual'] = residuals_model(model_dictionary[r])
+  model_dictionary[f'{r}_Residuals'] = residuals_model(model_dictionary[r])
   
 def load_data(path = '/content/drive/MyDrive/CMIPB_Files/IntegratedData.tsv', target = 'Target', transformation: dict = {'Target':np.log2, 'Titre_IgG_PT':np.log2}):
   data = pd.read_csv(path, sep = '\t', index_col = 0)
@@ -69,7 +69,7 @@ def run_model(model_name: str, data_dir: str, data_params: dict, model_params: d
         if len(transformation_args['features_to_change']) == 0:
           cv_args['transformation_args']['features_to_change'] = feature_list
         cv_args['transformation'] = transformation_func
-        run_name = '_'.join([model, feature_name, transformation_name])
+        run_name = '_'.join([model_name, feature_name, transformation_name])
         output_dir = os.path.join(outpath, run_name)
         if transformation_func != False:
           if transformation_args['n_components'] >= int(ds.data.shape[0]*0.8):
