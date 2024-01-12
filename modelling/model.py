@@ -76,7 +76,7 @@ def run_model(model_name: str, data_dir: str, data_params: dict, model_params: d
             continue
         if os.path.exists(output_dir) is False:
           os.mkdir(output_dir)
-        for n in range(n_repeats):
+        for n in range(cv_params[cv_name]['n_repeats']):
           if precomputed_split != False:
             cv_args['precomputed_split'] = os.path.join(precomputed_split,f'Repeat{n}CV_IDx.p')
           cv = CV(ds.data)
