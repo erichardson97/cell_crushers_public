@@ -68,7 +68,8 @@ def run_model(model_name: str, data_dir: str, data_params: dict, model_params: d
         transformation_args = transformation_params[transformation_name]['transformation_args']
         transformation_func = False if transformation_params[transformation_name]['transformation_func'] == False else eval(transformation_params[transformation_name]['transformation_func'])
         if 'reducer' in transformation_args:
-          reducer = model_dictionary[transformation_args['reducer']]
+          if type(transformation_args['reducer']) == str:
+            reducer = model_dictionary[transformation_args['reducer']]
         cv_args['transformation_args'] = transformation_args
         cv_args['transformation_args']['features'] = feature_list
         if len(transformation_args['features_to_change']) == 0:
