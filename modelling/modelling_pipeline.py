@@ -4,6 +4,7 @@ import argparse
 import yaml
 import os
 import sys
+from model import run_model
 
 def check_model_file(model_file_path):
   file = yaml.safe_load(open(model_file_path, 'r'))
