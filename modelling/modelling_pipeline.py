@@ -69,6 +69,6 @@ transformation_params = yaml.safe_load(open(file['transformation'], 'r'))
 for model in model_spec:
     run_model(model, data_dir = file['data_path'], data_params = data_params,
               model_params = model_spec[model], feature_params = feature_spec, cv_params = cv_spec, 
-              transformation_params = transformation_params, outpath = file['outpath'])
+              transformation_params = transformation_params, outpath = file['outpath'], target = file['target'])
   
 
