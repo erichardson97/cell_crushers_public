@@ -458,7 +458,7 @@ class CV():
         with warnings.catch_warnings(record=True) as captured_warnings:
             model.fit(train_X, train_y)
         for warning in captured_warnings:
-            warning_dictionary[2020] += str(warning.message)+'\n'
+            warning_dictionary[2020][model_name] += str(warning.message)+'\n'
         trained_models['Train2020_Test2021'][model_name] = model
         val = model.predict(test_X)
         score = score_function(val, test_y)
