@@ -275,14 +275,14 @@ for cv_type in ['RegularCV','CrossDataset']:
         if overwrite is False:
           pass
         else:
-        if os.path.exists(output_directory) is False:
-          os.mkdir(output_directory)
-          args_for_cv['transformation'] = reduce_dimensions
-          args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(feature_list),
-                  'reducer':PCA, 'n_components':n_components}
-          
-          repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = '/mnt/bioadhoc/Users/erichard/cell_crushers/ig_task/data/cv_split')
-          ds.data[feature_list].to_csv(os.path.join(output_directory,'dataset.tsv'),sep='\t')
+          if os.path.exists(output_directory) is False:
+            os.mkdir(output_directory)
+            args_for_cv['transformation'] = reduce_dimensions
+            args_for_cv['transformation_args'] = {'features':np.array(feature_list),'features_to_change' : np.array(feature_list),
+                    'reducer':PCA, 'n_components':n_components}
+            
+            repeat_cv(ds.data, feature_list, args_for_cv, output_directory, cv_type = cv_type, cv_path = '/mnt/bioadhoc/Users/erichard/cell_crushers/ig_task/data/cv_split')
+            ds.data[feature_list].to_csv(os.path.join(output_directory,'dataset.tsv'),sep='\t')
       # for n_components in [10, 15, 30, 50, len(features[gene_type])]:
       #     if n_components >= len(features[gene_type]):
       #       continue
