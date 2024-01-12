@@ -52,6 +52,10 @@ def run_model(model_name: str, data_dir: str, data_params: dict, model_params: d
   for cv_name in cv_params:
     cv_args = populate_cv_args(cv_name, model, baseline, cv_params, model_params[model_name], outpath)
     cv_type = cv_params[cv_name]['cv_type']
+    if 'precomputed_split' in cv_params[cv_name]:
+      precomputed_split = cv_params[cv_name]['precomputed_split']
+    else:
+      precomputed_split = False
     for feature_name in feature_params:
       feature_list = feature_params[feature_name]
       ds = load_data(os.path.join(data_dir, filename), transformation = transformation)
