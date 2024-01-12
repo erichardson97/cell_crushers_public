@@ -92,7 +92,7 @@ def run_model(model_name: str, data_dir: str, data_params: dict, model_params: d
             os.rename(file, os.path.join(output_dir, f'Repeat{n}_{file}'))
           scores.to_csv(os.path.join(output_dir, f'Repeat{n}.csv'))
           coefficients.to_csv(os.path.join(output_dir,f'FeatImportance{n}.csv'))
-          with open(os.path.join(output_dir, "TrainedModels.p"), 'wb') as k:
-            pickle.dump(models, k)
+          # with open(os.path.join(output_dir, "TrainedModels.p"), 'wb') as k:
+          #   pickle.dump(models, k)
           
       
