@@ -507,8 +507,20 @@ class CV():
     scores = pd.DataFrame(scores)
     if return_coef:
         if not transformation:
+            for fold in trained_models:
+                for model in trained_models[fold]:
+                    if model in return_coef:
+                        values = return_property(trained_models[fold][model], return_coef[model])
+                        if len(values) != len(features):
+                            return scores, trained_models, pd.DataFrame([])
             coefficient_df = pd.concat([pd.DataFrame(dict((p, dict((features[m], y) for m,y in enumerate(return_property(trained_models[x][p], return_coef[p])))) for p in trained_models[x] if p in return_coef)).T.assign(Fold=x) for x in trained_models])
         else:
+            for fold in trained_models:
+                for model in trained_models[fold]:
+                    if model in return_coef:
+                        values = return_property(trained_models[fold][model], return_coef[model])
+                        if len(values) != len(feature_order[fold]):
+                            return scores, trained_models, pd.DataFrame([])
             coefficient_df = pd.concat([pd.DataFrame(dict((p, dict((feature_order[x][m], y) for m,y in enumerate(return_property(trained_models[x][p], return_coef[p])))) for p in trained_models[x] if p in return_coef)).T.assign(Fold=x) for x in trained_models])
     else:
         coefficient_df = None
