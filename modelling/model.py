@@ -70,12 +70,13 @@ def run_model(model_name: str, data_dir: str, data_params: dict, model_params: d
         if 'reducer' in transformation_args:
           if type(transformation_args['reducer']) == str:
             reducer = model_dictionary[transformation_args['reducer']]
+        features_to_change = transformation_args['features_to_change'] if 'features_to_change' in transformation_args else []
         cv_args['transformation_args'] = transformation_args
         cv_args['transformation_args']['features'] = feature_list
-        if len(transformation_args['features_to_change']) == 0:
+        if len(features_to_change) == 0:
           cv_args['transformation_args']['features_to_change'] = feature_list
-        if type(transformation_args['features_to_change']) != list:
-          cv_args['transformation_args']['features_to_change'] = eval(transformation_args['features_to_change'])
+        if type(features_to_change) != list:
+          cv_args['transformation_args']['features_to_change'] = eval(features_to_change)
         assert len(transformation_args['features_to_change']) <= len(feature_list)
         if 'reducer' in transformation_args:
           cv_args['transformation_args']['reducer'] = reducer
