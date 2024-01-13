@@ -4,6 +4,7 @@ import argparse
 import yaml
 import os
 import sys
+from joblib import Parallel, delayed
 from model import run_model
 
 def check_model_file(model_file_path):
@@ -52,6 +53,7 @@ def check_model_file(model_file_path):
   
 parser = argparse.ArgumentParser()
 parser.add_argument('--model_args', dest = 'model_args', help = 'YAML file containign model arguments.')
+parser.add_argument('--n_jobs', dest = 'n_jobs', help = 'N jobs.')
 args = parser.parse_args()
 if os.path.exists(args.model_args) is False:
   sys.stderr.write('Please supply the model file.')
@@ -66,9 +68,10 @@ feature_spec = yaml.safe_load(open(file['feature_spec'], 'r'))
 cv_spec = yaml.safe_load(open(file['cv_spec'], 'r'))
 transformation_params = yaml.safe_load(open(file['transformation'], 'r'))
 
-for model in model_spec:
-    run_model(model, data_dir = file['data_path'], data_params = data_params,
+def run_run_model(model):
+  run_model(model, data_dir = file['data_path'], data_params = data_params,
               model_params = model_spec, feature_params = feature_spec, cv_params = cv_spec, 
               transformation_params = transformation_params, outpath = file['outpath'], target = file['target'])
-  
+
+Parallel(n_jobs=args.n_jobs)(delayed(run_run_model)(model) for model in model_spec) 
 
