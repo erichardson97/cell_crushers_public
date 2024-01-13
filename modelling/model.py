@@ -4,6 +4,7 @@ from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.linear_model import Lasso, Ridge, ElasticNet, LinearRegression
 from sklearn.decomposition import PCA
 import sys
+from copy import deepcopy
 from glob import glob
 
 
@@ -65,7 +66,7 @@ def run_model(model_name: str, data_dir: str, data_params: dict, model_params: d
       ds.filter(feature_list, data_params['nan_policy'])
       cv_args['features'] = feature_list
       for transformation_name in transformation_params:
-        transformation_args = transformation_params[transformation_name]['transformation_args']
+        transformation_args = deepcopy(transformation_params[transformation_name]['transformation_args'])
         transformation_func = False if transformation_params[transformation_name]['transformation_func'] == False else eval(transformation_params[transformation_name]['transformation_func'])
         if 'reducer' in transformation_args:
           if type(transformation_args['reducer']) == str:
