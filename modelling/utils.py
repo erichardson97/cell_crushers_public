@@ -192,7 +192,7 @@ def reduce_dimensions(X: np.array, y: np.array, features: np.array, features_to_
     features_to_change = np.array(features_to_change)
     feature_idxs = np.where(np.isin(features, features_to_change))[0]
     features_to_keep = np.where(~np.isin(features, features_to_change))[0]
-    print(n_components, len(features_to_change), X.shape[0])
+    print(n_components, len(features), len(features_to_change), X.shape[0])
     if not trained:
       reduction = reducer(n_components = n_components)
       if supervised:
@@ -451,6 +451,7 @@ class CV():
         train_X, train_y, test_X, test_y = self.batch_normalize(train_X, train_y, test_X, test_y, features)
     if transformation:
         assert train_X.shape[1] == test_X.shape[1]
+        print(train_X.shape)
         print(transformation_args['n_components'], train_X.shape[0], train_X.shape[1], len(transformation_args['features_to_change']))
         if transformation_args['n_components'] >= min([train_X.shape[0], len(transformation_args['features_to_change'])]):
                 return None, None, None
