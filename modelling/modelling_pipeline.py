@@ -73,5 +73,8 @@ def run_run_model(model):
               model_params = model_spec, feature_params = feature_spec, cv_params = cv_spec, 
               transformation_params = transformation_params, outpath = file['outpath'], target = file['target'])
 
-Parallel(n_jobs=args.n_jobs)(delayed(run_run_model)(model) for model in model_spec) 
-
+if int(args.n_jobs) > 1:
+  Parallel(n_jobs=int(args.n_jobs))(delayed(run_run_model)(model) for model in model_spec) 
+else:
+  for model in model_spec:
+    run_run_model(model)
