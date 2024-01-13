@@ -367,7 +367,7 @@ class CV():
                 for model in trained_models[fold]:
                     if model in return_coef:
                         values = return_property(trained_models[fold][model], return_coef[model])
-                        if len(values) > len(feature_order[fold][model]):
+                        if len(values) > len(feature_order[fold]):
                             return scores, trained_models, pd.DataFrame([])
             coefficient_df = pd.concat([pd.DataFrame(dict((p, dict((feature_order[x][m], y) for m,y in enumerate(return_property(trained_models[x][p], return_coef[p])))) for p in trained_models[x] if p in return_coef)).T.assign(Fold=x) for x in trained_models])
     else:
@@ -481,7 +481,6 @@ class CV():
     test_X, test_y = X_1.copy(), y_1.copy()
     if transformation:
         assert train_X.shape[1] == test_X.shape[1]
-        print(transformation_args['n_components'], train_X.shape[0], train_X.shape[1], len(transformation_args['features_to_change']))
         if transformation_args['n_components'] >= min([train_X.shape[0], len(transformation_args['features_to_change'])]):
                 return None, None, None
         train_X, transformer, new_feature_order =  transformation(train_X, train_y, **transformation_args)
