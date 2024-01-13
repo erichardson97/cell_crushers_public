@@ -478,6 +478,7 @@ class CV():
     test_X, test_y = X_1.copy(), y_1.copy()
     if transformation:
         assert train_X.shape[1] == test_X.shape[1]
+        print(transformation_args['n_components'], train_X.shape[0], train_X.shape[1], transformation_args['features_to_change'])
         if transformation_args['n_components'] >= min([train_X.shape[0], len(transformation_args['features_to_change'])]):
                 return None, None, None
         train_X, transformer, new_feature_order =  transformation(train_X, train_y, **transformation_args)
