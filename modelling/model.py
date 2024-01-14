@@ -20,7 +20,7 @@ def load_data(path = '/content/drive/MyDrive/CMIPB_Files/IntegratedData.tsv', ta
   if ('Target' in data) & (target != 'Target'):
     del data['Target']
   data = data.rename(columns = {target: 'Target'})
-  data = data[(data[target].notna())]
+  data = data[(data['Target'].notna())]
   for key in transformation:
     data[key] = data[key].map(transformation[key])
   ds = Dataset(data)
