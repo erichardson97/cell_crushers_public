@@ -12,7 +12,7 @@ from glob import glob
 model_dictionary = {'RandomForest':RandomForestRegressor, 'GradientBoost':GradientBoostingRegressor,
                     'LinearRegression':LinearRegression, 'Ridge':Ridge, 'Lasso':Lasso, 'ElasticNet':ElasticNet}
 for r in ['RandomForest', 'LinearRegression', 'GradientBoost', 'Ridge', 'Lasso', 'ElasticNet']:
-  model_dictionary[f'{r}_Residuals'] = residuals_model(model_dictionary[r])
+  model_dictionary[f'{r}_Residual'] = residuals_model(model_dictionary[r])
 model_dictionary['PCA'] = PCA
 
 def load_data(path = '/content/drive/MyDrive/CMIPB_Files/IntegratedData.tsv', target = 'Target', transformation: dict = {'Target':np.log2, 'Titre_IgG_PT':np.log2}):
