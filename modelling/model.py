@@ -3,6 +3,7 @@ from data_utils import *
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.linear_model import Lasso, Ridge, ElasticNet, LinearRegression
 from sklearn.decomposition import PCA
+from xgboost import XGBRegressor
 import sys
 from copy import deepcopy
 from glob import glob
@@ -10,8 +11,8 @@ from glob import glob
 
   
 model_dictionary = {'RandomForest':RandomForestRegressor, 'GradientBoost':GradientBoostingRegressor,
-                    'Linear':LinearRegression, 'Ridge':Ridge, 'Lasso':Lasso, 'ElasticNet':ElasticNet}
-for r in ['RandomForest', 'Linear', 'GradientBoost', 'Ridge', 'Lasso', 'ElasticNet']:
+                    'Linear':LinearRegression, 'Ridge':Ridge, 'Lasso':Lasso, 'ElasticNet':ElasticNet, 'XGBoost':XGBRegressor}
+for r in ['RandomForest', 'Linear', 'GradientBoost', 'Ridge', 'Lasso', 'ElasticNet','XGBoost']:
   model_dictionary[f'{r}_Residual'] = residuals_model(model_dictionary[r])
 model_dictionary['PCA'] = PCA
 
