@@ -10,8 +10,8 @@ from glob import glob
 
   
 model_dictionary = {'RandomForest':RandomForestRegressor, 'GradientBoost':GradientBoostingRegressor,
-                    'LinearRegression':LinearRegression, 'Ridge':Ridge, 'Lasso':Lasso, 'ElasticNet':ElasticNet}
-for r in ['RandomForest', 'LinearRegression', 'GradientBoost', 'Ridge', 'Lasso', 'ElasticNet']:
+                    'Linear':LinearRegression, 'Ridge':Ridge, 'Lasso':Lasso, 'ElasticNet':ElasticNet}
+for r in ['RandomForest', 'Linear', 'GradientBoost', 'Ridge', 'Lasso', 'ElasticNet']:
   model_dictionary[f'{r}_Residual'] = residuals_model(model_dictionary[r])
 model_dictionary['PCA'] = PCA
 
