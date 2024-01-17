@@ -63,7 +63,7 @@ def run_model(model_name: str, data_dir: str, data_params: dict, model_params: d
       precomputed_split = False
     for feature_name in feature_params:
       feature_list = feature_params[feature_name]
-      ds = load_data(os.path.join(data_dir, filename), transformation = transformation)
+      ds = load_data(os.path.join(data_dir, filename), transformation = transformation, target = target)
       ds.filter(feature_list, data_params['nan_policy'])
       cv_args['features'] = feature_list
       for transformation_name in transformation_params:
